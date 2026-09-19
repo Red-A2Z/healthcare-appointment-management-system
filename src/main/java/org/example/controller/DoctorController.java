@@ -33,19 +33,16 @@ public class DoctorController {
     @GetMapping
     public ResponseEntity<DoctorResponseDTO> readDoctor(@RequestParam Long id){
 
-        DoctorResponseDTO doctorResponseDTO = doctorService.readDoctor(id);
-
-        return ResponseEntity.ok(doctorResponseDTO);
+        return ResponseEntity.ok(doctorService.readDoctor(id));
     }
 
 
     @PutMapping("/{id}")
     public ResponseEntity<DoctorResponseDTO> updateDoctor(@PathVariable Long id,
-            @Valid @RequestBody DoctorRequestDTO doctorRequestDTO){
+                                                          @Valid @RequestBody DoctorRequestDTO doctorRequestDTO){
 
-        DoctorResponseDTO doctorResponseDTO = doctorService.updateDoctor(id,doctorRequestDTO);
 
-        return ResponseEntity.ok(doctorResponseDTO);
+        return ResponseEntity.ok(doctorService.updateDoctor(id,doctorRequestDTO));
 
     }
 
