@@ -126,13 +126,17 @@ public class DoctorAvailabilityService {
         }
 
 
+        if(!doctorAvailabilityPatchRequestDTO.getStartTime().isPresent()
+                || !doctorAvailabilityPatchRequestDTO.getEndTime().isPresent() ){
 
-        if(doctorAvailability.getStartTime().isAfter(doctorAvailability.getEndTime())
-                || doctorAvailability.getStartTime().isEqual(doctorAvailability.getEndTime())){
+            if(doctorAvailability.getStartTime().isAfter(doctorAvailability.getEndTime())
+                    || doctorAvailability.getStartTime().isEqual(doctorAvailability.getEndTime())){
 
-            throw new InvalidDateRangeException("Start time shouldn't be after end time. Consider checking the already saved values");
+                throw new InvalidDateRangeException("Start time shouldn't be after end time. Consider checking the already saved values");
 
+            }
         }
+
 
 
 
