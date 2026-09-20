@@ -36,6 +36,29 @@ public class GlobalExceptionHandler {
     }
 
 
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleInvalidDateRangeException(InvalidDateRangeException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage()
+                );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponseDTO);
+
+    }
+
+
+
+
+
+
+
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ExceptionResponseDTO> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest httpServletRequest){
 

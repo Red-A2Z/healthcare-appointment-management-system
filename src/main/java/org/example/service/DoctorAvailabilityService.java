@@ -6,6 +6,7 @@ import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityResponseDTO;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
+import org.example.exception.InvalidDateRangeException;
 import org.example.exception.ResourceNotFoundException;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
@@ -113,12 +114,24 @@ public class DoctorAvailabilityService {
             doctorAvailability.setDoctor(doctor);
         }
 
+
+
+
         if(doctorAvailabilityPatchRequestDTO.getStartTime().isPresent()){
             doctorAvailability.setStartTime(doctorAvailabilityPatchRequestDTO.getStartTime().get());
         }
 
         if(doctorAvailabilityPatchRequestDTO.getEndTime().isPresent()){
             doctorAvailability.setEndTime(doctorAvailabilityPatchRequestDTO.getEndTime().get());
+        }
+
+
+
+        if(doctorAvailability.getStartTime().isAfter(doctorAvailability.getEndTime())
+                || doctorAvailability.getStartTime().isEqual(doctorAvailability.getEndTime())){
+
+            throw new InvalidDateRangeException("Start time shouldn't be after end time. Consider checking the already saved values");
+
         }
 
 
