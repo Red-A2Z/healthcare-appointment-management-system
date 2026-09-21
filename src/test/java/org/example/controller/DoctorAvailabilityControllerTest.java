@@ -58,6 +58,24 @@ public class DoctorAvailabilityControllerTest {
     }
 
 
+    @Test
+    void createDoctorAvailability_whenStartTimeIsAfterOrEqualsEndTime_throwsException() throws Exception {
+
+        DoctorAvailabilityRequestDTO doctorAvailabilityRequestDTO = new DoctorAvailabilityRequestDTO(1L,
+                LocalDateTime.parse("2030-09-21T10:00:00"),
+                LocalDateTime.parse("2030-09-20T16:30:00"));
+
+        mockMvc.perform(post("/api/doctoravailability")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(doctorAvailabilityRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Start time shouldn't be after end time"));
+
+
+
+    }
+
+
 
 
 }
