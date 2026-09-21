@@ -116,18 +116,21 @@ public class DoctorAvailabilityService {
 
 
 
+        boolean isStartTimePresent = doctorAvailabilityPatchRequestDTO.getStartTime().isPresent();
+        boolean isEndTimePresent = doctorAvailabilityPatchRequestDTO.getEndTime().isPresent();
 
-        if(doctorAvailabilityPatchRequestDTO.getStartTime().isPresent()){
+
+        if(isStartTimePresent){
             doctorAvailability.setStartTime(doctorAvailabilityPatchRequestDTO.getStartTime().get());
         }
 
-        if(doctorAvailabilityPatchRequestDTO.getEndTime().isPresent()){
+        if(isEndTimePresent){
             doctorAvailability.setEndTime(doctorAvailabilityPatchRequestDTO.getEndTime().get());
         }
 
 
-        if(!doctorAvailabilityPatchRequestDTO.getStartTime().isPresent()
-                || !doctorAvailabilityPatchRequestDTO.getEndTime().isPresent() ){
+        if((!isStartTimePresent && isEndTimePresent)
+                || (!isEndTimePresent && isStartTimePresent) ){
 
             if(doctorAvailability.getStartTime().isAfter(doctorAvailability.getEndTime())
                     || doctorAvailability.getStartTime().isEqual(doctorAvailability.getEndTime())){
