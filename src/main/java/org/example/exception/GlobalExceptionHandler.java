@@ -53,6 +53,21 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(TimePeriodAlreadyCoveredException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleTimePeriodAlreadyCoveredException(TimePeriodAlreadyCoveredException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
+
+    }
+
 
 
 

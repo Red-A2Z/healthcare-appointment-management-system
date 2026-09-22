@@ -1,6 +1,7 @@
 package org.example.service;
 
 
+import jakarta.transaction.Transactional;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityPatchRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityResponseDTO;
@@ -8,9 +9,13 @@ import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
 import org.example.exception.InvalidDateRangeException;
 import org.example.exception.ResourceNotFoundException;
+import org.example.exception.TimePeriodAlreadyCoveredException;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class DoctorAvailabilityService {
@@ -34,15 +39,79 @@ public class DoctorAvailabilityService {
                                         .orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
 
-        DoctorAvailability doctorAvailability = new DoctorAvailability();
-        doctorAvailability.setStartTime(doctorAvailabilityRequestDTO.getStartTime());
-        doctorAvailability.setEndTime(doctorAvailabilityRequestDTO.getEndTime());
-        doctorAvailability.setDoctor(doctor);
-
-        doctorAvailabilityRepository.save(doctorAvailability);
+        DoctorAvailability newDoctorAvailability = new DoctorAvailability();
+        newDoctorAvailability.setStartTime(doctorAvailabilityRequestDTO.getStartTime());
+        newDoctorAvailability.setEndTime(doctorAvailabilityRequestDTO.getEndTime());
+        newDoctorAvailability.setDoctor(doctor);
 
 
-        return mapToDoctorAvailabilityResponseDTO(doctorAvailability);
+        List<DoctorAvailability> doctorAvailabilitiesList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
+
+        for(DoctorAvailability element:doctorAvailabilitiesList){
+
+
+            boolean isBeforeOrEqual_element = element.getStartTime().isBefore(newDoctorAvailability.getStartTime()) || element.getStartTime().isEqual(newDoctorAvailability.getStartTime());
+            boolean isAfterOrEqual_element = element.getEndTime().isAfter(newDoctorAvailability.getEndTime()) || element.getEndTime().isEqual(newDoctorAvailability.getEndTime());
+
+            if(isBeforeOrEqual_element && isAfterOrEqual_element){ // newDoctorAvailability is 'inside' element
+                throw new TimePeriodAlreadyCoveredException("The provided period is already covered by an existing larger one");
+            }
+
+
+            boolean isBeforeOrEqual_new = newDoctorAvailability.getStartTime().isBefore(element.getStartTime()) || newDoctorAvailability.getStartTime().isEqual(element.getStartTime());
+            boolean isAfterOrEqual_new = newDoctorAvailability.getEndTime().isAfter(element.getEndTime()) || newDoctorAvailability.getEndTime().isEqual(element.getEndTime());
+
+            if(isBeforeOrEqual_new && isAfterOrEqual_new){ // element is 'inside' newDoctorAvailability
+
+                // newDoctorAvailability is meant to 'replace' the element
+                newDoctorAvailability.setId(element.getId());
+            }
+
+
+        }
+
+
+        // Try merging newDoctorAvailability with an existing doctorAvailability, then try merging the result of this merge
+
+        doctorAvailabilitiesList.add(newDoctorAvailability);
+
+        doctorAvailabilitiesList.sort(Comparator.comparing(DoctorAvailability::getStartTime));
+
+        for(int i=0;i<doctorAvailabilitiesList.size()-1;i++){
+            DoctorAvailability element_a = doctorAvailabilitiesList.get(i);
+            DoctorAvailability element_b = doctorAvailabilitiesList.get(i+1);
+
+            if(element_a.getEndTime().isAfter(element_b.getStartTime()) || element_a.getEndTime().isEqual(element_b.getStartTime())){
+
+                if(element_a== newDoctorAvailability){
+
+                    element_b.setStartTime(element_a.getStartTime());
+                    doctorAvailabilityRepository.save(element_b);
+                    return mapToDoctorAvailabilityResponseDTO(element_b);
+
+                } else if (element_b == newDoctorAvailability) {
+
+                    element_a.setEndTime(element_b.getEndTime());
+                    doctorAvailabilityRepository.save(element_a);
+                    return mapToDoctorAvailabilityResponseDTO(element_a);
+
+                }
+                else{
+                    mergeTwoExistingDoctorAvailabilities(element_a,element_b);
+                    return mapToDoctorAvailabilityResponseDTO(element_a);
+
+                }
+
+            }
+
+        }
+
+
+
+        doctorAvailabilityRepository.save(newDoctorAvailability);
+
+
+        return mapToDoctorAvailabilityResponseDTO(newDoctorAvailability);
     }
 
 
@@ -157,10 +226,6 @@ public class DoctorAvailabilityService {
 
 
 
-
-
-
-
     private DoctorAvailabilityResponseDTO mapToDoctorAvailabilityResponseDTO(DoctorAvailability doctorAvailability){
 
 
@@ -173,6 +238,20 @@ public class DoctorAvailabilityService {
 
         return doctorAvailabilityResponseDTO;
 
+
+    }
+
+
+
+
+
+
+    @Transactional
+    private void mergeTwoExistingDoctorAvailabilities(DoctorAvailability element_a, DoctorAvailability element_b){
+
+        element_a.setEndTime(element_b.getEndTime());
+        doctorAvailabilityRepository.save(element_a);
+        doctorAvailabilityRepository.delete(element_b);
 
     }
 
