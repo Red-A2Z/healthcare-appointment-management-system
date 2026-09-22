@@ -187,20 +187,21 @@ public class DoctorAvailabilityService {
 
 
 
-    private List<DoctorAvailability> handlePeriodOverlapBeforeSaving(List<DoctorAvailability> doctorAvailabilitiesList,DoctorAvailability newDoctorAvailability){
+    public List<DoctorAvailability> handlePeriodOverlapBeforeSaving(List<DoctorAvailability> doctorAvailabilitiesList,DoctorAvailability newDoctorAvailability){
 
 
         List<DoctorAvailability> doctorAvailabilitiesToDelete = new ArrayList<>();
 
+        List<DoctorAvailability> listForLoop = new ArrayList<>(doctorAvailabilitiesList);
 
-        for(DoctorAvailability element:doctorAvailabilitiesList){
+        for(DoctorAvailability element:listForLoop){
 
 
             boolean isBeforeOrEqual_element = element.getStartTime().isBefore(newDoctorAvailability.getStartTime()) || element.getStartTime().isEqual(newDoctorAvailability.getStartTime());
             boolean isAfterOrEqual_element = element.getEndTime().isAfter(newDoctorAvailability.getEndTime()) || element.getEndTime().isEqual(newDoctorAvailability.getEndTime());
 
             if(isBeforeOrEqual_element && isAfterOrEqual_element){ // newDoctorAvailability is 'inside' element
-                throw new TimePeriodAlreadyCoveredException("The provided period is already covered by an existing larger one");
+                throw new TimePeriodAlreadyCoveredException("The provided period is already covered by an existing one");
             }
 
 
@@ -231,8 +232,8 @@ public class DoctorAvailabilityService {
 
 
         for(int i=0;i<truncatedList.size()-1;i++){
-            DoctorAvailability element_a = doctorAvailabilitiesList.get(i);
-            DoctorAvailability element_b = doctorAvailabilitiesList.get(i+1);
+            DoctorAvailability element_a = truncatedList.get(i);
+            DoctorAvailability element_b = truncatedList.get(i+1);
 
             if(element_a.getEndTime().isAfter(element_b.getStartTime()) || element_a.getEndTime().isEqual(element_b.getStartTime())){
 
