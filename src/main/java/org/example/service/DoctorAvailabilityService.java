@@ -14,6 +14,7 @@ import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -44,71 +45,12 @@ public class DoctorAvailabilityService {
         newDoctorAvailability.setEndTime(doctorAvailabilityRequestDTO.getEndTime());
         newDoctorAvailability.setDoctor(doctor);
 
-
         List<DoctorAvailability> doctorAvailabilitiesList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
 
-        for(DoctorAvailability element:doctorAvailabilitiesList){
 
+        List<DoctorAvailability> doctorAvailabilitiesToDelete = handlePeriodOverlapBeforeSaving(doctorAvailabilitiesList,newDoctorAvailability);
 
-            boolean isBeforeOrEqual_element = element.getStartTime().isBefore(newDoctorAvailability.getStartTime()) || element.getStartTime().isEqual(newDoctorAvailability.getStartTime());
-            boolean isAfterOrEqual_element = element.getEndTime().isAfter(newDoctorAvailability.getEndTime()) || element.getEndTime().isEqual(newDoctorAvailability.getEndTime());
-
-            if(isBeforeOrEqual_element && isAfterOrEqual_element){ // newDoctorAvailability is 'inside' element
-                throw new TimePeriodAlreadyCoveredException("The provided period is already covered by an existing larger one");
-            }
-
-
-            boolean isBeforeOrEqual_new = newDoctorAvailability.getStartTime().isBefore(element.getStartTime()) || newDoctorAvailability.getStartTime().isEqual(element.getStartTime());
-            boolean isAfterOrEqual_new = newDoctorAvailability.getEndTime().isAfter(element.getEndTime()) || newDoctorAvailability.getEndTime().isEqual(element.getEndTime());
-
-            if(isBeforeOrEqual_new && isAfterOrEqual_new){ // element is 'inside' newDoctorAvailability
-
-                // newDoctorAvailability is meant to 'replace' the element
-                newDoctorAvailability.setId(element.getId());
-            }
-
-
-        }
-
-
-        // Try merging newDoctorAvailability with an existing doctorAvailability, then try merging the result of this merge
-
-        doctorAvailabilitiesList.add(newDoctorAvailability);
-
-        doctorAvailabilitiesList.sort(Comparator.comparing(DoctorAvailability::getStartTime));
-
-        for(int i=0;i<doctorAvailabilitiesList.size()-1;i++){
-            DoctorAvailability element_a = doctorAvailabilitiesList.get(i);
-            DoctorAvailability element_b = doctorAvailabilitiesList.get(i+1);
-
-            if(element_a.getEndTime().isAfter(element_b.getStartTime()) || element_a.getEndTime().isEqual(element_b.getStartTime())){
-
-                if(element_a== newDoctorAvailability){
-
-                    element_b.setStartTime(element_a.getStartTime());
-                    doctorAvailabilityRepository.save(element_b);
-                    return mapToDoctorAvailabilityResponseDTO(element_b);
-
-                } else if (element_b == newDoctorAvailability) {
-
-                    element_a.setEndTime(element_b.getEndTime());
-                    doctorAvailabilityRepository.save(element_a);
-                    return mapToDoctorAvailabilityResponseDTO(element_a);
-
-                }
-                else{
-                    mergeTwoExistingDoctorAvailabilities(element_a,element_b);
-                    return mapToDoctorAvailabilityResponseDTO(element_a);
-
-                }
-
-            }
-
-        }
-
-
-
-        doctorAvailabilityRepository.save(newDoctorAvailability);
+        deleteOldAndSaveNew(doctorAvailabilitiesToDelete, newDoctorAvailability);
 
 
         return mapToDoctorAvailabilityResponseDTO(newDoctorAvailability);
@@ -245,13 +187,87 @@ public class DoctorAvailabilityService {
 
 
 
+    private List<DoctorAvailability> handlePeriodOverlapBeforeSaving(List<DoctorAvailability> doctorAvailabilitiesList,DoctorAvailability newDoctorAvailability){
+
+
+        List<DoctorAvailability> doctorAvailabilitiesToDelete = new ArrayList<>();
+
+
+        for(DoctorAvailability element:doctorAvailabilitiesList){
+
+
+            boolean isBeforeOrEqual_element = element.getStartTime().isBefore(newDoctorAvailability.getStartTime()) || element.getStartTime().isEqual(newDoctorAvailability.getStartTime());
+            boolean isAfterOrEqual_element = element.getEndTime().isAfter(newDoctorAvailability.getEndTime()) || element.getEndTime().isEqual(newDoctorAvailability.getEndTime());
+
+            if(isBeforeOrEqual_element && isAfterOrEqual_element){ // newDoctorAvailability is 'inside' element
+                throw new TimePeriodAlreadyCoveredException("The provided period is already covered by an existing larger one");
+            }
+
+
+            boolean isBeforeOrEqual_new = newDoctorAvailability.getStartTime().isBefore(element.getStartTime()) || newDoctorAvailability.getStartTime().isEqual(element.getStartTime());
+            boolean isAfterOrEqual_new = newDoctorAvailability.getEndTime().isAfter(element.getEndTime()) || newDoctorAvailability.getEndTime().isEqual(element.getEndTime());
+
+            if(isBeforeOrEqual_new && isAfterOrEqual_new){ // element is 'inside' newDoctorAvailability
+
+                doctorAvailabilitiesList.remove(element);
+                doctorAvailabilitiesToDelete.add(element);
+
+            }
+
+        }
+
+
+        // Try merging newDoctorAvailability with an existing doctorAvailability, then try merging the result of this merge
+
+
+        doctorAvailabilitiesList.add(newDoctorAvailability);
+
+        doctorAvailabilitiesList.sort(Comparator.comparing(DoctorAvailability::getStartTime));
+
+        int index = doctorAvailabilitiesList.indexOf(newDoctorAvailability);
+
+        List<DoctorAvailability> truncatedList= doctorAvailabilitiesList.subList(Math.max(0,index-1),Math.min(index+2,doctorAvailabilitiesList.size()));
+
+
+
+        for(int i=0;i<truncatedList.size()-1;i++){
+            DoctorAvailability element_a = doctorAvailabilitiesList.get(i);
+            DoctorAvailability element_b = doctorAvailabilitiesList.get(i+1);
+
+            if(element_a.getEndTime().isAfter(element_b.getStartTime()) || element_a.getEndTime().isEqual(element_b.getStartTime())){
+
+                if(element_a== newDoctorAvailability){
+                    doctorAvailabilitiesToDelete.add(element_b);
+                    newDoctorAvailability.setEndTime(element_b.getEndTime());
+
+                } else if (element_b == newDoctorAvailability) {
+                    doctorAvailabilitiesToDelete.add(element_a);
+                    newDoctorAvailability.setStartTime(element_a.getStartTime());
+
+                }
+
+            }
+
+        }
+
+        return doctorAvailabilitiesToDelete;
+
+
+    }
+
+
 
     @Transactional
-    private void mergeTwoExistingDoctorAvailabilities(DoctorAvailability element_a, DoctorAvailability element_b){
+    private void deleteOldAndSaveNew(List<DoctorAvailability> doctorAvailabilitiesToDelete, DoctorAvailability newDoctorAvailability){
 
-        element_a.setEndTime(element_b.getEndTime());
-        doctorAvailabilityRepository.save(element_a);
-        doctorAvailabilityRepository.delete(element_b);
+
+        for(DoctorAvailability doctorAvailabilityToDelete: doctorAvailabilitiesToDelete){
+            doctorAvailabilityRepository.delete(doctorAvailabilityToDelete);
+        }
+
+        doctorAvailabilityRepository.save(newDoctorAvailability);
+
+
 
     }
 
