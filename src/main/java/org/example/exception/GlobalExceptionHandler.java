@@ -101,6 +101,22 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(AppointmentCOMPLETEDException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleAppointmentCOMPLETEDException(AppointmentCOMPLETEDException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
+
+    }
+
+
 
 
     @ExceptionHandler(ResourceNotFoundException.class)

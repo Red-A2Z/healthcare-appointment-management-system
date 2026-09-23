@@ -2,10 +2,7 @@ package org.example.controller;
 
 
 import jakarta.validation.Valid;
-import org.example.dto.AppointmentDTOs.AppointmentDoctorIdPatchDTO;
-import org.example.dto.AppointmentDTOs.AppointmentPatientIdPatchDTO;
-import org.example.dto.AppointmentDTOs.AppointmentRequestDTO;
-import org.example.dto.AppointmentDTOs.AppointmentResponseDTO;
+import org.example.dto.AppointmentDTOs.*;
 import org.example.exception.InvalidDateRangeException;
 import org.example.service.AppointmentService;
 import org.springframework.http.HttpStatus;
@@ -66,7 +63,12 @@ public class AppointmentController {
     }
 
 
+    @PatchMapping("/reschedule/{id}")
+    public ResponseEntity<AppointmentResponseDTO> rescheduleAppointment(@PathVariable Long id,
+                                                                                @Valid @RequestBody AppointmentReschedulingDTO appointmentReschedulingDTO){
 
+        return ResponseEntity.ok(appointmentService.rescheduleAppointment(id,appointmentReschedulingDTO));
+    }
 
 
 

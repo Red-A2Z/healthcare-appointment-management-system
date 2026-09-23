@@ -2,19 +2,13 @@ package org.example.service;
 
 
 import jakarta.transaction.Transactional;
-import org.example.dto.AppointmentDTOs.AppointmentDoctorIdPatchDTO;
-import org.example.dto.AppointmentDTOs.AppointmentPatientIdPatchDTO;
-import org.example.dto.AppointmentDTOs.AppointmentRequestDTO;
-import org.example.dto.AppointmentDTOs.AppointmentResponseDTO;
+import org.example.dto.AppointmentDTOs.*;
 import org.example.entity.Appointment;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
 import org.example.entity.Patient;
 import org.example.enums.AppointmentStatus;
-import org.example.exception.DoctorInactiveException;
-import org.example.exception.DoctorUnavailableException;
-import org.example.exception.PatientAppointmentConflictException;
-import org.example.exception.ResourceNotFoundException;
+import org.example.exception.*;
 import org.example.repository.AppointmentRepository;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
@@ -68,7 +62,7 @@ public class AppointmentService {
         newAppointment.setReasonForVisit(appointmentRequestDTO.getReasonForVisit());
 
 
-        // Patient must not have overlapping appointments
+        // Patient cannot have overlapping appointments
         List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,newAppointment);
 
@@ -221,7 +215,7 @@ public class AppointmentService {
         Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
         appointment.setPatient(newPatient);
 
-        // Patient must not have overlapping appointments
+        // Patient cannot have overlapping appointments
         List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
@@ -231,6 +225,46 @@ public class AppointmentService {
 
 
 
+    public AppointmentResponseDTO rescheduleAppointment(Long id, AppointmentReschedulingDTO appointmentReschedulingDTO){
+
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
+
+
+        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
+            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot be rescheduled");
+        }
+
+        Long doctorId = appointment.getDoctor().getId();
+        Long patientId = appointment.getPatient().getId();
+
+        // Doctor must be active
+        if(appointment.getDoctor().getIsActive().equals(false)){
+            throw new DoctorInactiveException("Doctor with id: "+doctorId+" is inactive");
+        }
+
+
+        LocalDateTime startTimeToFree = appointment.getStartTime();
+        LocalDateTime endTimeToFree = appointment.getEndTime();
+        DoctorAvailability davWhenAppointmentPeriodIsFreed = new DoctorAvailability(null,null,startTimeToFree,endTimeToFree);
+
+
+        appointment.setStartTime(appointmentReschedulingDTO.getStartTime());
+        appointment.setEndTime(appointmentReschedulingDTO.getEndTime());
+
+
+        // Patient cannot have overlapping appointments
+        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
+        patientAppointmentList.removeIf(obj -> obj.getId().equals(id));
+        checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
+
+        //Doctor must be available
+        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
+        doctorAvailabilityList.add(davWhenAppointmentPeriodIsFreed);
+        checkNewAppointmentAgainstDoctorAvailabilityThenAct(doctorAvailabilityList,appointment);
+
+
+        return mapToAppointmentResponseDTO(appointment);
+    }
 
 
 
