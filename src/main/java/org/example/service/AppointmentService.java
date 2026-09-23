@@ -57,7 +57,6 @@ public class AppointmentService {
             throw new DoctorInactiveException("Doctor with id: "+doctorId+" is inactive");
         }
 
-
         Appointment newAppointment = new Appointment();
         newAppointment.setDoctor(doctor);
         newAppointment.setPatient(patient);
@@ -66,11 +65,28 @@ public class AppointmentService {
         newAppointment.setReasonForVisit(appointmentRequestDTO.getReasonForVisit());
 
 
+        // Patient must not have two appointments at the same time
+        checkAppointmentAgainstPatientAppointments(newAppointment);
+
+        //Doctor must be available
+        checkNewAppointmentAgainstDoctorAvailability(newAppointment);
+
+
+        return mapToAppointmentResponseDTO(newAppointment);
+    }
+
+
+
+
+
+
+    public void checkAppointmentAgainstPatientAppointments(Appointment newAppointment){
+
+        Long doctorId = newAppointment.getDoctor().getId();
+        Long patientId = newAppointment.getPatient().getId();
         LocalDateTime newAppointmentStartTime = newAppointment.getStartTime();
         LocalDateTime newAppointmentEndTime = newAppointment.getEndTime();
 
-
-        // Patient must not have two appointments at the same time
 
         List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(doctorId);
 
@@ -95,9 +111,17 @@ public class AppointmentService {
 
         }
 
+    }
 
 
-        //Doctor must be available
+
+
+    public void checkNewAppointmentAgainstDoctorAvailability(Appointment newAppointment){
+
+        Long doctorId = newAppointment.getDoctor().getId();
+        LocalDateTime newAppointmentStartTime = newAppointment.getStartTime();
+        LocalDateTime newAppointmentEndTime = newAppointment.getEndTime();
+
 
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
         int doctorAvailabilitiesCounter = 0;
@@ -120,12 +144,7 @@ public class AppointmentService {
         }
 
 
-
-        return mapToAppointmentResponseDTO(newAppointment);
     }
-
-
-
 
 
 
@@ -160,6 +179,13 @@ public class AppointmentService {
 
 
     }
+
+
+
+
+
+
+
 
 
 
