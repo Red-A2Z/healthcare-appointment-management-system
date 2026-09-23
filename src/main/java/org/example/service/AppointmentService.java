@@ -106,7 +106,7 @@ public class AppointmentService {
             }
         }
 
-        if(appointmentsCounter==patientAppointmentList.size()){
+        if(!patientAppointmentList.isEmpty() && appointmentsCounter==patientAppointmentList.size()){
             throw new PatientAppointmentConflictException("Provided period conflicts with an existing appointment for patient with id: "+patientId);
 
         }
