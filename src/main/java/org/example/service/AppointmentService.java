@@ -2,6 +2,8 @@ package org.example.service;
 
 
 import jakarta.transaction.Transactional;
+import org.example.dto.AppointmentDTOs.AppointmentDoctorIdPatchDTO;
+import org.example.dto.AppointmentDTOs.AppointmentPatientIdPatchDTO;
 import org.example.dto.AppointmentDTOs.AppointmentRequestDTO;
 import org.example.dto.AppointmentDTOs.AppointmentResponseDTO;
 import org.example.entity.Appointment;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class AppointmentService {
@@ -65,11 +68,13 @@ public class AppointmentService {
         newAppointment.setReasonForVisit(appointmentRequestDTO.getReasonForVisit());
 
 
-        // Patient must not have two appointments at the same time
-        checkAppointmentAgainstPatientAppointments(newAppointment);
+        // Patient must not have overlapping appointments
+        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
+        checkAppointmentAgainstPatientAppointments(patientAppointmentList,newAppointment);
 
         //Doctor must be available
-        checkNewAppointmentAgainstDoctorAvailability(newAppointment);
+        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
+        checkNewAppointmentAgainstDoctorAvailabilityThenAct(doctorAvailabilityList,newAppointment);
 
 
         return mapToAppointmentResponseDTO(newAppointment);
@@ -80,15 +85,12 @@ public class AppointmentService {
 
 
 
-    public void checkAppointmentAgainstPatientAppointments(Appointment newAppointment){
+    public void checkAppointmentAgainstPatientAppointments(List<Appointment> patientAppointmentList,Appointment newAppointment){
 
-        Long doctorId = newAppointment.getDoctor().getId();
         Long patientId = newAppointment.getPatient().getId();
         LocalDateTime newAppointmentStartTime = newAppointment.getStartTime();
         LocalDateTime newAppointmentEndTime = newAppointment.getEndTime();
 
-
-        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(doctorId);
 
         int appointmentsCounter = 0;
 
@@ -116,14 +118,13 @@ public class AppointmentService {
 
 
 
-    public void checkNewAppointmentAgainstDoctorAvailability(Appointment newAppointment){
+    public void checkNewAppointmentAgainstDoctorAvailabilityThenAct(List<DoctorAvailability> doctorAvailabilityList, Appointment newAppointment){
 
         Long doctorId = newAppointment.getDoctor().getId();
         LocalDateTime newAppointmentStartTime = newAppointment.getStartTime();
         LocalDateTime newAppointmentEndTime = newAppointment.getEndTime();
 
 
-        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
         int doctorAvailabilitiesCounter = 0;
 
         for(DoctorAvailability dav:doctorAvailabilityList){
@@ -179,6 +180,65 @@ public class AppointmentService {
 
 
     }
+
+
+
+    public AppointmentResponseDTO updateDoctorIdForAppointment(Long id,AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO){
+
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
+
+
+        Long doctorId = appointmentDoctorIdPatchDTO.getDoctorId();
+        if(Objects.equals(doctorId, appointment.getDoctor().getId())){
+            return mapToAppointmentResponseDTO(appointment);
+        }
+
+        Doctor newDoctor = doctorRepository.findById(doctorId).orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
+        appointment.setDoctor(newDoctor);
+
+        //Doctor must be available
+        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
+        checkNewAppointmentAgainstDoctorAvailabilityThenAct(doctorAvailabilityList, appointment);
+
+
+        return mapToAppointmentResponseDTO(appointment);
+    }
+
+
+
+
+
+    public AppointmentResponseDTO updatePatientIdForAppointment(Long id, AppointmentPatientIdPatchDTO appointmentPatientIdPatchDTO){
+
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
+
+
+        Long patientId = appointmentPatientIdPatchDTO.getPatientId();
+        if(Objects.equals(patientId, appointment.getPatient().getId())){
+            return mapToAppointmentResponseDTO(appointment);
+        }
+
+        Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
+        appointment.setPatient(newPatient);
+
+        // Patient must not have overlapping appointments
+        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
+        checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
+
+
+        return mapToAppointmentResponseDTO(appointment);
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

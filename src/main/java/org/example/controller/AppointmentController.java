@@ -2,6 +2,8 @@ package org.example.controller;
 
 
 import jakarta.validation.Valid;
+import org.example.dto.AppointmentDTOs.AppointmentDoctorIdPatchDTO;
+import org.example.dto.AppointmentDTOs.AppointmentPatientIdPatchDTO;
 import org.example.dto.AppointmentDTOs.AppointmentRequestDTO;
 import org.example.dto.AppointmentDTOs.AppointmentResponseDTO;
 import org.example.exception.InvalidDateRangeException;
@@ -44,6 +46,36 @@ public class AppointmentController {
 
         return null;
     }
+
+
+
+
+    @PatchMapping("/changedoctor/{id}")
+    public ResponseEntity<AppointmentResponseDTO> updateDoctorIdForAppointment(@PathVariable Long id,
+                                                                               @Valid @RequestBody AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO){
+
+        return ResponseEntity.ok(appointmentService.updateDoctorIdForAppointment(id,appointmentDoctorIdPatchDTO));
+    }
+
+
+    @PatchMapping("/changepatient/{id}")
+    public ResponseEntity<AppointmentResponseDTO> updatePatientIdForAppointment(@PathVariable Long id,
+                                                                               @Valid @RequestBody AppointmentPatientIdPatchDTO appointmentPatientIdPatchDTO){
+
+        return ResponseEntity.ok(appointmentService.updatePatientIdForAppointment(id,appointmentPatientIdPatchDTO));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
