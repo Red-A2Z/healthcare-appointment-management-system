@@ -85,7 +85,18 @@ public class DoctorAvailabilityService {
         doctorAvailability.setEndTime(doctorAvailabilityRequestDTO.getEndTime());
         doctorAvailability.setDoctor(doctor);
 
-        doctorAvailabilityRepository.save(doctorAvailability);
+
+
+        List<DoctorAvailability> doctorAvailabilitiesList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
+
+        // Remove the object of the record we want to update
+        doctorAvailabilitiesList.removeIf(obj -> obj.getId().equals(id));
+
+        List<DoctorAvailability> doctorAvailabilitiesToDelete = handlePeriodOverlapBeforeSaving(doctorAvailabilitiesList,doctorAvailability);
+
+        deleteOldAndSaveNew(doctorAvailabilitiesToDelete, doctorAvailability);
+
+
 
         return mapToDoctorAvailabilityResponseDTO(doctorAvailability);
 
@@ -150,6 +161,16 @@ public class DoctorAvailabilityService {
 
             }
         }
+
+
+
+        List<DoctorAvailability> doctorAvailabilitiesList = doctorAvailabilityRepository.findAllByDoctorId(doctorAvailability.getDoctor().getId());
+        // Remove the object of the record we want to update
+        doctorAvailabilitiesList.removeIf(obj -> obj.getId().equals(id));
+
+        List<DoctorAvailability> doctorAvailabilitiesToDelete = handlePeriodOverlapBeforeSaving(doctorAvailabilitiesList,doctorAvailability);
+
+        deleteOldAndSaveNew(doctorAvailabilitiesToDelete, doctorAvailability);
 
 
 
