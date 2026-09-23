@@ -1,17 +1,18 @@
 package org.example.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.enums.AppointmentStatus;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Appointment {
 
@@ -31,9 +32,9 @@ public class Appointment {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String reasonForVisit;
-
     @Enumerated(EnumType.STRING)
     private AppointmentStatus appointmentStatus;
+
 
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant createdAt;

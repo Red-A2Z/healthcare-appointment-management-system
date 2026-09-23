@@ -70,6 +70,35 @@ public class GlobalExceptionHandler {
 
 
 
+    @ExceptionHandler(DoctorInactiveException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleDoctorInactiveException(DoctorInactiveException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
+
+    }
+
+    @ExceptionHandler(PatientAppointmentConflictException.class)
+    public ResponseEntity<ExceptionResponseDTO> handlePatientAppointmentConflictException(PatientAppointmentConflictException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
+
+    }
 
 
 
