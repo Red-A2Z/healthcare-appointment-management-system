@@ -188,6 +188,10 @@ public class AppointmentService {
             return mapToAppointmentResponseDTO(appointment);
         }
 
+        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
+            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot have doctor changed");
+        }
+
         Doctor newDoctor = doctorRepository.findById(doctorId).orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
         //Doctor must be available
@@ -252,6 +256,10 @@ public class AppointmentService {
             return mapToAppointmentResponseDTO(appointment);
         }
 
+        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
+            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot have patient changed");
+        }
+
         Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
 
         // Patient cannot have overlapping appointments
@@ -280,7 +288,6 @@ public class AppointmentService {
         }
 
         Long doctorId = appointment.getDoctor().getId();
-        Long patientId = appointment.getPatient().getId();
 
         // Doctor must be active
         if(appointment.getDoctor().getIsActive().equals(false)){
@@ -295,6 +302,7 @@ public class AppointmentService {
         appointment.setEndTime(appointmentReschedulingDTO.getEndTime());
 
         // Patient cannot have overlapping appointments
+        Long patientId = appointment.getPatient().getId();
         List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
         patientAppointmentList.removeIf(obj -> obj.getId().equals(id));
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
