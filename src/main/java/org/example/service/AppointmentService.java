@@ -68,13 +68,12 @@ public class AppointmentService {
 
         //Doctor must be available
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
-        checkNewAppointmentAgainstDoctorAvailabilityThenAct(doctorAvailabilityList,newAppointment);
+        DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList,newAppointment);
 
+        saveAppointmentAndPerformRelatedActions(correspondingDoctorAvailability, newAppointment);
 
         return mapToAppointmentResponseDTO(newAppointment);
     }
-
-
 
 
 
@@ -111,8 +110,7 @@ public class AppointmentService {
 
 
 
-
-    public void checkNewAppointmentAgainstDoctorAvailabilityThenAct(List<DoctorAvailability> doctorAvailabilityList, Appointment newAppointment){
+    public DoctorAvailability checkAppointmentAgainstDAs(List<DoctorAvailability> doctorAvailabilityList, Appointment newAppointment){
 
         Long doctorId = newAppointment.getDoctor().getId();
         LocalDateTime newAppointmentStartTime = newAppointment.getStartTime();
@@ -127,8 +125,7 @@ public class AppointmentService {
             LocalDateTime davEndTime = dav.getEndTime();
 
             if(!newAppointmentStartTime.isBefore(davStartTime) && !newAppointmentEndTime.isAfter(davEndTime)){
-                doctorAvailabilityMinusAppointment(dav,newAppointment);
-                break;
+                return dav;
             }else{
                 doctorAvailabilitiesCounter++;
             }
@@ -138,15 +135,13 @@ public class AppointmentService {
             throw new DoctorUnavailableException("Doctor with id "+doctorId+" has no corresponding availability");
         }
 
-
+        return null;
     }
 
 
 
-
-
     @Transactional
-    public void doctorAvailabilityMinusAppointment( DoctorAvailability doctorAvailability, Appointment appointment){
+    public void saveAppointmentAndPerformRelatedActions( DoctorAvailability doctorAvailability, Appointment appointment){
 
         DoctorAvailability newDoctorAvailabilityLeft = new DoctorAvailability(null,
                 doctorAvailability.getDoctor(),
@@ -177,6 +172,12 @@ public class AppointmentService {
 
 
 
+
+
+
+
+
+
     public AppointmentResponseDTO updateDoctorIdForAppointment(Long id,AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO){
 
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
@@ -188,15 +189,54 @@ public class AppointmentService {
         }
 
         Doctor newDoctor = doctorRepository.findById(doctorId).orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
-        appointment.setDoctor(newDoctor);
 
         //Doctor must be available
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
-        checkNewAppointmentAgainstDoctorAvailabilityThenAct(doctorAvailabilityList, appointment);
+        DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList, appointment);
 
+        changeDoctorAndPerformRelatedActions(newDoctor, correspondingDoctorAvailability, appointment);
 
         return mapToAppointmentResponseDTO(appointment);
     }
+
+
+    @Transactional
+    public void changeDoctorAndPerformRelatedActions(Doctor newDoctor, DoctorAvailability doctorAvailability, Appointment appointment){
+
+        DoctorAvailability newDoctorAvailabilityLeft = new DoctorAvailability(null,
+                doctorAvailability.getDoctor(),
+                doctorAvailability.getStartTime(),
+                appointment.getStartTime());
+
+        DoctorAvailability newDoctorAvailabilityRight = new DoctorAvailability(null,
+                doctorAvailability.getDoctor(),
+                appointment.getEndTime(),
+                doctorAvailability.getEndTime());
+
+
+        doctorAvailabilityRepository.delete(doctorAvailability);
+        if(!newDoctorAvailabilityLeft.getStartTime().isEqual(newDoctorAvailabilityLeft.getEndTime())){
+            doctorAvailabilityRepository.save(newDoctorAvailabilityLeft);
+        }
+
+        if(!newDoctorAvailabilityRight.getStartTime().isEqual(newDoctorAvailabilityRight.getEndTime())){
+            doctorAvailabilityRepository.save(newDoctorAvailabilityRight);
+        }
+
+
+        // Free time for old Doctor
+        DoctorAvailability newAvailabilityForOldDoctor = new DoctorAvailability(null,appointment.getDoctor(),appointment.getStartTime(),appointment.getEndTime());
+        doctorAvailabilityRepository.save(newAvailabilityForOldDoctor);
+
+
+        appointment.setDoctor(newDoctor);
+        appointment.setAppointmentStatus(AppointmentStatus.SCHEDULED);
+        appointmentRepository.save(appointment);
+
+
+
+    }
+
 
 
 
@@ -213,15 +253,20 @@ public class AppointmentService {
         }
 
         Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
-        appointment.setPatient(newPatient);
 
         // Patient cannot have overlapping appointments
         List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
+        appointment.setPatient(newPatient);
+        appointmentRepository.save(appointment);
 
         return mapToAppointmentResponseDTO(appointment);
     }
+
+
+
+
 
 
 
@@ -242,30 +287,38 @@ public class AppointmentService {
             throw new DoctorInactiveException("Doctor with id: "+doctorId+" is inactive");
         }
 
-
         LocalDateTime startTimeToFree = appointment.getStartTime();
         LocalDateTime endTimeToFree = appointment.getEndTime();
-        DoctorAvailability davWhenAppointmentPeriodIsFreed = new DoctorAvailability(null,null,startTimeToFree,endTimeToFree);
-
+        DoctorAvailability davWhenAppointmentPeriodIsFreed = new DoctorAvailability(null,appointment.getDoctor(),startTimeToFree,endTimeToFree);
 
         appointment.setStartTime(appointmentReschedulingDTO.getStartTime());
         appointment.setEndTime(appointmentReschedulingDTO.getEndTime());
-
 
         // Patient cannot have overlapping appointments
         List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
         patientAppointmentList.removeIf(obj -> obj.getId().equals(id));
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
-        //Doctor must be available
-        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
-        doctorAvailabilityList.add(davWhenAppointmentPeriodIsFreed);
-        checkNewAppointmentAgainstDoctorAvailabilityThenAct(doctorAvailabilityList,appointment);
+        checkAppointmentAgainstDAsAndPerformReschedulingActions(davWhenAppointmentPeriodIsFreed, appointment);
 
 
         return mapToAppointmentResponseDTO(appointment);
     }
 
+
+
+    @Transactional
+    public void checkAppointmentAgainstDAsAndPerformReschedulingActions(DoctorAvailability davWhenAppointmentPeriodIsFreed, Appointment appointment){
+
+        doctorAvailabilityRepository.save(davWhenAppointmentPeriodIsFreed);
+
+        //Doctor must be available
+        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(appointment.getDoctor().getId());
+        DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList,appointment);
+
+        saveAppointmentAndPerformRelatedActions(correspondingDoctorAvailability, appointment);
+
+    }
 
 
 
