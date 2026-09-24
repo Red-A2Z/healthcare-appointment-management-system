@@ -67,6 +67,10 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDTO> rescheduleAppointment(@PathVariable Long id,
                                                                                 @Valid @RequestBody AppointmentReschedulingDTO appointmentReschedulingDTO){
 
+        if(!appointmentReschedulingDTO.getStartTime().isBefore(appointmentReschedulingDTO.getEndTime())){
+            throw new InvalidDateRangeException("Start time should be before end time");
+        }
+
         return ResponseEntity.ok(appointmentService.rescheduleAppointment(id,appointmentReschedulingDTO));
     }
 
