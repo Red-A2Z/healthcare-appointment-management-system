@@ -74,8 +74,12 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.rescheduleAppointment(id,appointmentReschedulingDTO));
     }
 
+    @PatchMapping("/updaterfv/{id}")
+    public ResponseEntity<AppointmentResponseDTO> updateRFV(@PathVariable Long id,
+                                                            @Valid @RequestBody AppointmentRFVPatchDTO appointmentRFVPatchDTO){
 
-
+        return ResponseEntity.ok(appointmentService.updateRFV(id,appointmentRFVPatchDTO));
+    }
 
 
 

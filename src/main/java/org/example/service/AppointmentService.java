@@ -335,6 +335,25 @@ public class AppointmentService {
 
 
 
+    public AppointmentResponseDTO updateRFV(Long id, AppointmentRFVPatchDTO appointmentRFVPatchDTO){
+
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
+
+        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
+            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot have patient changed");
+        }
+
+        appointment.setReasonForVisit(appointmentRFVPatchDTO.getReasonForVisit());
+
+        appointmentRepository.save(appointment);
+
+        return mapToAppointmentResponseDTO(appointment);
+
+    }
+
+
+
 
 
 
