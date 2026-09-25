@@ -4,6 +4,7 @@ package org.example.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.dto.ExceptionDTOs.ExceptionResponseDTO;
 import org.example.dto.ExceptionDTOs.MethodArgumentNotValidExceptionResponseDTO;
+import org.example.exception.AppointmentStatusConflictExceptions.AppointmentStatusConflictException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -116,6 +117,20 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(AppointmentStatusConflictException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleAppointmentStatusConflictException(AppointmentStatusConflictException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
+
+    }
 
 
 

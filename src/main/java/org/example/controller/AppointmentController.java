@@ -47,7 +47,7 @@ public class AppointmentController {
 
 
 
-    @PatchMapping("/changedoctor/{id}")
+    @PatchMapping("/doctor/{id}")
     public ResponseEntity<AppointmentResponseDTO> updateDoctorIdForAppointment(@PathVariable Long id,
                                                                                @Valid @RequestBody AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO){
 
@@ -55,7 +55,7 @@ public class AppointmentController {
     }
 
 
-    @PatchMapping("/changepatient/{id}")
+    @PatchMapping("/patient/{id}")
     public ResponseEntity<AppointmentResponseDTO> updatePatientIdForAppointment(@PathVariable Long id,
                                                                                @Valid @RequestBody AppointmentPatientIdPatchDTO appointmentPatientIdPatchDTO){
 
@@ -74,7 +74,7 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.rescheduleAppointment(id,appointmentReschedulingDTO));
     }
 
-    @PatchMapping("/updaterfv/{id}")
+    @PatchMapping("/reasonforvisit/{id}")
     public ResponseEntity<AppointmentResponseDTO> updateRFV(@PathVariable Long id,
                                                             @Valid @RequestBody AppointmentRFVPatchDTO appointmentRFVPatchDTO){
 
@@ -82,7 +82,13 @@ public class AppointmentController {
     }
 
 
+    @PatchMapping("/status/{id}")
+    public ResponseEntity<AppointmentResponseDTO> updateAppointmentStatus(@PathVariable Long id,
+                                                                          @Valid @RequestBody AppointmentStatusRequestDTO appointmentStatusRequestDTO){
 
+
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, appointmentStatusRequestDTO));
+    }
 
 
 

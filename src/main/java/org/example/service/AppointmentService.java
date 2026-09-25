@@ -2,6 +2,7 @@ package org.example.service;
 
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.example.dto.AppointmentDTOs.*;
 import org.example.entity.Appointment;
 import org.example.entity.Doctor;
@@ -9,11 +10,15 @@ import org.example.entity.DoctorAvailability;
 import org.example.entity.Patient;
 import org.example.enums.AppointmentStatus;
 import org.example.exception.*;
+import org.example.exception.AppointmentStatusConflictExceptions.AppointmentStatusTimingConflictException;
+import org.example.exception.AppointmentStatusConflictExceptions.AppointmentStatusValueConflictException;
 import org.example.repository.AppointmentRepository;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
 import org.example.repository.PatientRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -354,6 +359,73 @@ public class AppointmentService {
 
 
 
+
+
+
+    public AppointmentResponseDTO updateAppointmentStatus(@PathVariable Long id,
+                                                          @Valid @RequestBody AppointmentStatusRequestDTO appointmentStatusRequestDTO){
+
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
+
+
+
+        if(appointmentStatusRequestDTO.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED)){
+
+            if(!appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED)){
+                throw new AppointmentStatusValueConflictException("You can't directly change from other statuses to SCHEDULED");
+            }
+
+            if(appointment.getEndTime().isBefore(LocalDateTime.now())){
+                throw new AppointmentStatusTimingConflictException("Consider updating the appointmentStatus field with a value other than SCHEDULED");
+            }
+
+        }else if(appointmentStatusRequestDTO.getAppointmentStatus().equals(AppointmentStatus.CANCELLED)){
+
+            if(!appointment.getStartTime().isAfter(LocalDateTime.now())){
+                throw new AppointmentStatusTimingConflictException("Too late to cancel the appointment");
+            }
+
+            return freeTimeslotAndSaveAppointment(appointment);
+
+
+        }else{
+
+            if(!appointment.getEndTime().isBefore(LocalDateTime.now())){
+                throw new AppointmentStatusTimingConflictException("Too early to mark this appointment as "+appointment.getAppointmentStatus());
+            }
+
+            if(!(appointment.getAppointmentStatus().equals(appointmentStatusRequestDTO.getAppointmentStatus())
+                    || appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED))){
+                throw new AppointmentStatusValueConflictException("Previous value should be SCHEDULED or "+appointment.getAppointmentStatus()+ "in order to apply changes");
+            }
+            appointmentRepository.save(appointment);
+
+        }
+
+        return mapToAppointmentResponseDTO(appointment);
+    }
+
+
+
+    @Transactional
+    public AppointmentResponseDTO freeTimeslotAndSaveAppointment(Appointment appointment){
+
+        appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
+        appointmentRepository.save(appointment);
+
+        // free this timeslot for Doctor
+        DoctorAvailability doctorAvailability = new DoctorAvailability();
+        doctorAvailability.setDoctor(appointment.getDoctor());
+        doctorAvailability.setStartTime(appointment.getStartTime());
+        doctorAvailability.setEndTime(appointment.getEndTime());
+
+        doctorAvailabilityRepository.save(doctorAvailability);
+
+
+        return mapToAppointmentResponseDTO(appointment);
+
+    }
 
 
 
