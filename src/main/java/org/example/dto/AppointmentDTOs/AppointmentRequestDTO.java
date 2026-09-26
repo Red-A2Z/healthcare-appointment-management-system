@@ -37,7 +37,7 @@ public class AppointmentRequestDTO {
     @NotNull(message = "Reason for visiting cannot be null, empty or blank")
     private String reasonForVisit;
 
-
+    @NotNull(message = "Appointment Status cannot be null")
     private AppointmentStatus appointmentStatus;
 
 
