@@ -16,6 +16,7 @@ import org.example.repository.AppointmentRepository;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
 import org.example.repository.PatientRepository;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -386,7 +387,7 @@ public class AppointmentService {
                 throw new AppointmentStatusTimingConflictException("Too late to cancel the appointment");
             }
 
-            return freeTimeslotAndSaveAppointment(appointment);
+            return freeTimeslotAndUpdateAppointment(appointment);
 
 
         }else{
@@ -409,7 +410,7 @@ public class AppointmentService {
 
 
     @Transactional
-    public AppointmentResponseDTO freeTimeslotAndSaveAppointment(Appointment appointment){
+    public AppointmentResponseDTO freeTimeslotAndUpdateAppointment(Appointment appointment){
 
         appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
         appointmentRepository.save(appointment);
@@ -428,6 +429,92 @@ public class AppointmentService {
     }
 
 
+
+
+
+
+
+    public AppointmentResponseDTO readAppointment(Long id){
+
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
+
+        return mapToAppointmentResponseDTO(appointment);
+
+    }
+
+
+
+
+
+    public AppointmentListResponseDTO queryAppointments(AppointmentQueryRequestDTO appointmentQueryRequestDTO){
+
+
+        Specification<Appointment> spec = Specification.where(Specification.unrestricted());
+
+
+        if(appointmentQueryRequestDTO.getDoctorId().isPresent()){
+            Long doctorId = appointmentQueryRequestDTO.getDoctorId().get();
+            doctorRepository.findById(doctorId)
+                    .orElseThrow(()->new ResourceNotFoundException("No doctor found for id: "+doctorId));
+
+
+            spec = spec.and((root, query, builder) ->builder.equal(root.get("doctorId"), doctorId));
+
+        }
+
+        if(appointmentQueryRequestDTO.getPatientId().isPresent()){
+            Long patientId = appointmentQueryRequestDTO.getPatientId().get();
+            patientRepository.findById(patientId)
+                    .orElseThrow(()->new ResourceNotFoundException("No patient found for id: "+patientId));
+
+
+            spec = spec.and((root, query, builder) ->builder.equal(root.get("patientId"), patientId));
+
+        }
+
+
+        if(appointmentQueryRequestDTO.getStartDate().isPresent()){
+
+            LocalDateTime startTime = appointmentQueryRequestDTO.getStartDate().get().atStartOfDay();
+
+            spec = spec.and((root, query, builder) ->builder.greaterThanOrEqualTo(root.get("startTime"),startTime));
+
+
+        }
+
+        if(appointmentQueryRequestDTO.getEndDate().isPresent()){
+
+            LocalDateTime endTime = appointmentQueryRequestDTO.getEndDate().get().plusDays(1).atStartOfDay();
+
+            spec = spec.and((root, query, builder) ->builder.lessThan(root.get("endTime"),endTime));
+
+
+        }
+
+
+        if(appointmentQueryRequestDTO.getAppointmentStatus().isPresent()){
+
+            spec = spec.and((root, query, builder) ->builder.equal(root.get("appointmentStatus"),appointmentQueryRequestDTO.getAppointmentStatus().get()));
+
+
+        }
+
+
+        List<Appointment> appointmentList = appointmentRepository.findAll(spec);
+
+        AppointmentListResponseDTO appointmentListResponseDTO = new AppointmentListResponseDTO();
+        appointmentListResponseDTO.setDoctorId(appointmentQueryRequestDTO.getDoctorId().get());
+        appointmentListResponseDTO.setPatientId(appointmentQueryRequestDTO.getPatientId().get());
+        appointmentListResponseDTO.setStartDate(appointmentQueryRequestDTO.getStartDate().get());
+        appointmentListResponseDTO.setEndDate(appointmentQueryRequestDTO.getEndDate().get());
+        appointmentListResponseDTO.setAppointmentStatus(appointmentQueryRequestDTO.getAppointmentStatus().get());
+        appointmentListResponseDTO.setAppointmentList(appointmentList);
+
+
+
+        return appointmentListResponseDTO;
+    }
 
 
 

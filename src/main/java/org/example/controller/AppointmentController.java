@@ -4,7 +4,7 @@ package org.example.controller;
 import jakarta.validation.Valid;
 import org.example.dto.AppointmentDTOs.*;
 import org.example.exception.InvalidDateRangeException;
-import org.example.service.AppointmentService.AppointmentMaintenanceService;
+import org.example.service.AppointmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/appointment")
 public class AppointmentController {
 
-    AppointmentMaintenanceService appointmentMaintenanceService;
+    AppointmentService appointmentService;
 
-    public AppointmentController(AppointmentMaintenanceService appointmentMaintenanceService) {
-        this.appointmentMaintenanceService = appointmentMaintenanceService;
+    public AppointmentController(AppointmentService appointmentService) {
+        this.appointmentService = appointmentService;
     }
-
-
-
 
     @PostMapping
     public ResponseEntity<AppointmentResponseDTO> createAppointment(@Valid @RequestBody AppointmentRequestDTO appointmentRequestDTO){
@@ -32,16 +29,7 @@ public class AppointmentController {
 
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(appointmentMaintenanceService.createAppointment(appointmentRequestDTO));
-    }
-
-
-
-
-    @GetMapping
-    public ResponseEntity<AppointmentResponseDTO> readAppointment(@RequestParam Long id){
-
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED).body(appointmentService.createAppointment(appointmentRequestDTO));
     }
 
 
@@ -51,7 +39,7 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDTO> updateDoctorIdForAppointment(@PathVariable Long id,
                                                                                @Valid @RequestBody AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO){
 
-        return ResponseEntity.ok(appointmentMaintenanceService.updateDoctorIdForAppointment(id,appointmentDoctorIdPatchDTO));
+        return ResponseEntity.ok(appointmentService.updateDoctorIdForAppointment(id,appointmentDoctorIdPatchDTO));
     }
 
 
@@ -59,7 +47,7 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponseDTO> updatePatientIdForAppointment(@PathVariable Long id,
                                                                                @Valid @RequestBody AppointmentPatientIdPatchDTO appointmentPatientIdPatchDTO){
 
-        return ResponseEntity.ok(appointmentMaintenanceService.updatePatientIdForAppointment(id,appointmentPatientIdPatchDTO));
+        return ResponseEntity.ok(appointmentService.updatePatientIdForAppointment(id,appointmentPatientIdPatchDTO));
     }
 
 
@@ -71,14 +59,14 @@ public class AppointmentController {
             throw new InvalidDateRangeException("Start time should be before end time");
         }
 
-        return ResponseEntity.ok(appointmentMaintenanceService.rescheduleAppointment(id,appointmentReschedulingDTO));
+        return ResponseEntity.ok(appointmentService.rescheduleAppointment(id,appointmentReschedulingDTO));
     }
 
     @PatchMapping("/reasonforvisit/{id}")
     public ResponseEntity<AppointmentResponseDTO> updateRFV(@PathVariable Long id,
                                                             @Valid @RequestBody AppointmentRFVPatchDTO appointmentRFVPatchDTO){
 
-        return ResponseEntity.ok(appointmentMaintenanceService.updateRFV(id,appointmentRFVPatchDTO));
+        return ResponseEntity.ok(appointmentService.updateRFV(id,appointmentRFVPatchDTO));
     }
 
 
@@ -87,9 +75,39 @@ public class AppointmentController {
                                                                           @Valid @RequestBody AppointmentStatusRequestDTO appointmentStatusRequestDTO){
 
 
-        return ResponseEntity.ok(appointmentMaintenanceService.updateAppointmentStatus(id, appointmentStatusRequestDTO));
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, appointmentStatusRequestDTO));
     }
 
+
+
+
+
+
+
+    @GetMapping
+    public ResponseEntity<AppointmentResponseDTO> readAppointment(@RequestParam Long id){
+
+        return ResponseEntity.ok(appointmentService.readAppointment(id));
+
+    }
+
+
+    @GetMapping("/list")
+    public ResponseEntity<AppointmentListResponseDTO> queryAppointments(@Valid @RequestBody AppointmentQueryRequestDTO appointmentQueryRequestDTO){
+
+        if(appointmentQueryRequestDTO.getStartDate().isPresent() && appointmentQueryRequestDTO.getEndDate().isPresent()){
+
+            if(appointmentQueryRequestDTO.getEndDate().get().isBefore(appointmentQueryRequestDTO.getStartDate().get())){
+
+                throw new InvalidDateRangeException("End date shouldn't be before start date");
+
+            }
+
+        }
+
+        return ResponseEntity.ok(appointmentService.queryAppointments(appointmentQueryRequestDTO));
+
+    }
 
 
 
