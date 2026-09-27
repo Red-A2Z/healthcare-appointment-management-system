@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.List;
 
 
 @Getter
@@ -23,9 +22,6 @@ public class Doctor {
     private String firstName;
     private String lastName;
     private String specialty;
-
-
-
     private String phoneNumber;
     private String email;
     private Boolean isActive;
@@ -33,11 +29,6 @@ public class Doctor {
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "doctor")
-    private List<DoctorAvailability> doctorAvailabilityList;
-
-    @OneToMany(mappedBy = "doctor")
-    private List<Appointment> doctorAppointmentList;
 
 
 

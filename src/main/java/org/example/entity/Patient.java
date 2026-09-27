@@ -6,8 +6,6 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 
 @Getter
@@ -28,8 +26,6 @@ public class Patient {
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "patient")
-    private List<Appointment> patientAppointmentList;
 
 
 }

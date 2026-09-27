@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.enums.AppointmentStatus;
 
 
 import java.time.LocalDateTime;
@@ -37,8 +36,6 @@ public class AppointmentRequestDTO {
     @NotNull(message = "Reason for visiting cannot be null, empty or blank")
     private String reasonForVisit;
 
-    @NotNull(message = "Appointment Status cannot be null")
-    private AppointmentStatus appointmentStatus;
 
 
 
