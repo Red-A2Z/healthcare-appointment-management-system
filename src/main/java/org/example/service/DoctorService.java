@@ -1,29 +1,34 @@
 package org.example.service;
 
+import jakarta.transaction.Transactional;
 import org.example.dto.DoctorDTOs.DoctorPatchRequestDTO;
 import org.example.dto.DoctorDTOs.DoctorRequestDTO;
 import org.example.dto.DoctorDTOs.DoctorResponseDTO;
+import org.example.entity.Appointment;
 import org.example.entity.Doctor;
+import org.example.enums.AppointmentStatus;
 import org.example.exception.ConflictExcpetions.children.DuplicateResourceException;
 import org.example.exception.ResourceNotFoundException;
+import org.example.repository.AppointmentRepository;
 import org.example.repository.DoctorRepository;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
+    private final AppointmentRepository appointmentRepository;
 
 
-
-    public DoctorService(DoctorRepository doctorRepository){
+    public DoctorService(DoctorRepository doctorRepository, AppointmentRepository appointmentRepository) {
         this.doctorRepository = doctorRepository;
+        this.appointmentRepository = appointmentRepository;
     }
-
-
-
-
 
     public DoctorResponseDTO createDoctor(DoctorRequestDTO doctorRequestDTO){
 
@@ -68,12 +73,12 @@ public class DoctorService {
         Doctor doctor = doctorRepository.findById(id).orElseThrow(()-> new ResourceAccessException("No doctor found for id: "+ id));
 
 
-        updateAllFieldsExceptId(doctor, doctorRequestDTO);
+        int i = updateAllFieldsExceptId(doctor, doctorRequestDTO);
+        if(i==0){
+            doctorRepository.save(doctor);
+        }
 
-        Doctor updatedDoctor = doctorRepository.save(doctor);
-
-
-        return mapToDoctorResponseDTO(updatedDoctor);
+        return mapToDoctorResponseDTO(doctor);
     }
 
 
@@ -97,11 +102,12 @@ public class DoctorService {
 
         Doctor doctor = doctorRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No doctor found for id: "+ id));
 
-        updateSomeFields(doctor,doctorPatchRequestDTO);
+        int i = updateSomeFields(doctor,doctorPatchRequestDTO);
+        if(i==0){
+            doctorRepository.save(doctor);
+        }
 
-        Doctor updatedDoctor = doctorRepository.save(doctor);
-
-        return mapToDoctorResponseDTO(updatedDoctor);
+        return mapToDoctorResponseDTO(doctor);
 
 
     }
@@ -157,21 +163,30 @@ public class DoctorService {
 
 
 
-    private void updateAllFieldsExceptId(Doctor doctor, DoctorRequestDTO doctorRequestDTO){
+    private int updateAllFieldsExceptId(Doctor doctor, DoctorRequestDTO doctorRequestDTO){
 
+
+        doctor.setFirstName(doctorRequestDTO.getFirstName());
         doctor.setLastName(doctorRequestDTO.getLastName());
         doctor.setSpecialty(doctorRequestDTO.getSpecialty());
         doctor.setPhoneNumber(doctorRequestDTO.getPhoneNumber());
         doctor.setEmail(doctorRequestDTO.getEmail());
-        doctor.setIsActive(doctorRequestDTO.getIsActive());
-        doctor.setFirstName(doctorRequestDTO.getFirstName());
+
+        if(doctor.getIsActive().equals(true) && doctorRequestDTO.getIsActive().equals(false)){
+            deactivateDoctor(doctor);
+            return 1;
+        }else {
+            doctor.setIsActive(doctorRequestDTO.getIsActive());
+        }
+
+        return 0;
 
     }
 
 
 
 
-    private void updateSomeFields(Doctor doctor, DoctorPatchRequestDTO doctorPatchRequestDTO){
+    private int updateSomeFields(Doctor doctor, DoctorPatchRequestDTO doctorPatchRequestDTO){
 
         if(doctorPatchRequestDTO.getFirstName().isPresent()){
             doctor.setFirstName(doctorPatchRequestDTO.getFirstName().get());
@@ -189,8 +204,35 @@ public class DoctorService {
             doctor.setEmail(doctorPatchRequestDTO.getEmail().get());
         }
         if(doctorPatchRequestDTO.getIsActive().isPresent()){
-            doctor.setIsActive(doctorPatchRequestDTO.getIsActive().get());
+
+            if(doctor.getIsActive().equals(true) && doctorPatchRequestDTO.getIsActive().get().equals(false)){
+
+                deactivateDoctor(doctor);
+                return 1;
+
+            }else{
+                doctor.setIsActive(doctorPatchRequestDTO.getIsActive().get());
+            }
+
         }
+        return 0;
+
+    }
+
+
+    @Transactional
+    public void deactivateDoctor(Doctor doctor){
+
+        Specification<Appointment> spec = Specification.unrestricted();
+        spec = spec.and((root,query,builder)-> builder.equal(root.get("doctorId"),doctor.getId()));
+        spec = spec.and((root,query,builder)-> builder.equal(root.get("appointmentStatus"), AppointmentStatus.SCHEDULED));
+        spec = spec.and((root,query,builder)-> builder.greaterThan(root.get("startTime"), LocalDateTime.now()));
+
+        List<Appointment> appointmentsToCancel = appointmentRepository.findAll(spec);
+
+        appointmentRepository.deleteAll(appointmentsToCancel);
+        doctor.setIsActive(false);
+        doctorRepository.save(doctor);
 
     }
 
