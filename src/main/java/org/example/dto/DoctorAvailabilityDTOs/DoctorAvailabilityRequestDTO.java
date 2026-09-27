@@ -17,16 +17,16 @@ import java.time.LocalDateTime;
 public class DoctorAvailabilityRequestDTO {
 
 
-    @NotNull(message = "Doctor ID cannot be null")
-    @Positive(message = "Doctor ID should be positive")
+    @NotNull(message = "Doctor ID must not be null or not provided")
+    @Positive(message = "Doctor ID must be positive")
     private Long doctorId;
 
-    @NotNull(message = "Start time cannot be null")
-    @FutureOrPresent(message = "Start time shouldn't be in the past")
+    @NotNull(message = "Start time must not be null or not provided")
+    @FutureOrPresent(message = "Start time must not be in the past")
     private LocalDateTime startTime;
 
-    @NotNull(message = "End time cannot be null")
-    @FutureOrPresent(message = "End time shouldn't be in the past")
+    @NotNull(message = "End time must not be null or not provided")
+    @FutureOrPresent(message = "End time must not be in the past")
     private LocalDateTime endTime;
 
 

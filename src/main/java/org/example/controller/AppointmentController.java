@@ -25,7 +25,7 @@ public class AppointmentController {
         if(appointmentRequestDTO.getStartTime().isAfter(appointmentRequestDTO.getEndTime())
         || appointmentRequestDTO.getStartTime().isEqual(appointmentRequestDTO.getEndTime())){
 
-            throw new InvalidDateRangeException("Start time shouldn't be after end time");
+            throw new InvalidDateRangeException("Start time must be before end time");
 
         }
 
@@ -56,7 +56,7 @@ public class AppointmentController {
                                                                                 @Valid @RequestBody AppointmentReschedulingDTO appointmentReschedulingDTO){
 
         if(!appointmentReschedulingDTO.getStartTime().isBefore(appointmentReschedulingDTO.getEndTime())){
-            throw new InvalidDateRangeException("Start time should be before end time");
+            throw new InvalidDateRangeException("Start time must be before end time");
         }
 
         return ResponseEntity.ok(appointmentService.rescheduleAppointment(id,appointmentReschedulingDTO));
@@ -99,7 +99,7 @@ public class AppointmentController {
 
             if(appointmentQueryRequestDTO.getEndDate().get().isBefore(appointmentQueryRequestDTO.getStartDate().get())){
 
-                throw new InvalidDateRangeException("End date shouldn't be before start date");
+                throw new InvalidDateRangeException("End date must not be before start date");
 
             }
 

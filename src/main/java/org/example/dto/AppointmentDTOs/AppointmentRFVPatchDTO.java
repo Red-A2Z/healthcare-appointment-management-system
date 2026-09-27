@@ -1,6 +1,6 @@
 package org.example.dto.AppointmentDTOs;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class AppointmentRFVPatchDTO {
 
-    @NotNull(message = "Reason for visiting cannot be null, empty or blank")
+    @NotBlank(message = "Reason for visiting must not be null, empty, blank or not provided")
     private String reasonForVisit;
 }

@@ -19,18 +19,18 @@ public class DoctorAvailabilityPatchRequestDTO {
 
 
     private JsonNullable<
-            @NotNull(message = "Doctor ID cannot be null")
-            @Positive(message = "Doctor ID should be positive")
+            @NotNull(message = "Doctor ID must not be null")
+            @Positive(message = "Doctor ID must be positive")
                     Long> doctorId;
 
     private JsonNullable<
-            @NotNull(message = "Start time cannot be null")
-            @FutureOrPresent(message = "Start time shouldn't be in the past")
+            @NotNull(message = "Start time must not be null")
+            @FutureOrPresent(message = "Start time must not be in the past")
                     LocalDateTime> startTime;
 
     private JsonNullable<
-            @NotNull(message = "End time cannot be null")
-            @FutureOrPresent(message = "End time shouldn't be in the past")
+            @NotNull(message = "End time must not be null")
+            @FutureOrPresent(message = "End time must not be in the past")
                     LocalDateTime> endTime;
 
 

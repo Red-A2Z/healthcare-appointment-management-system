@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class AppointmentPatientIdPatchDTO {
 
-    @NotNull(message = "Patient ID cannot be null")
-    @Positive(message = "Patient ID should be positive")
+    @NotNull(message = "Patient ID must not be null or not provided")
+    @Positive(message = "Patient ID must be positive")
     private Long patientId;
 }

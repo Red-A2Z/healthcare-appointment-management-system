@@ -163,7 +163,7 @@ public class DoctorAvailabilityService {
             if(doctorAvailability.getStartTime().isAfter(doctorAvailability.getEndTime())
                     || doctorAvailability.getStartTime().isEqual(doctorAvailability.getEndTime())){
 
-                throw new InvalidDateRangeException("Start time shouldn't be after end time. Consider checking the already saved values");
+                throw new InvalidDateRangeException("Start time must be before end time. Consider checking the already saved values");
 
             }
         }

@@ -16,29 +16,29 @@ public class AppointmentQueryRequestDTO {
 
 
     private JsonNullable<
-            @NotNull(message = "Doctor ID cannot be null")
-            @Positive(message = "Doctor ID should be positive")
+            @NotNull(message = "Doctor ID must not be null")
+            @Positive(message = "Doctor ID must be positive")
                     Long> doctorId;
 
 
     private JsonNullable<
-            @NotNull(message = "Patient ID cannot be null")
-            @Positive(message = "Patient ID should be positive")
+            @NotNull(message = "Patient ID must not be null")
+            @Positive(message = "Patient ID must be positive")
                     Long> patientId;
 
 
     private JsonNullable<
-            @NotNull(message = "Start date cannot be null")
+            @NotNull(message = "Start date must not be null")
                     LocalDate> startDate;
 
 
     private JsonNullable<
-            @NotNull(message = "End date cannot be null")
+            @NotNull(message = "End date must not be null")
                     LocalDate> endDate;
 
 
     private JsonNullable<
-            @NotNull(message = "Appointment Status cannot be null")
+            @NotNull(message = "Appointment Status must not be null")
                     AppointmentStatus> appointmentStatus;
 
 

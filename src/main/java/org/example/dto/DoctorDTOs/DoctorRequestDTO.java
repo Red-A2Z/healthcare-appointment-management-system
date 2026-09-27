@@ -16,24 +16,24 @@ import lombok.Setter;
 @AllArgsConstructor
 public class DoctorRequestDTO {
 
-    @NotBlank(message = "First Name cannot be not provided, null, empty or blank")
+    @NotBlank(message = "First Name must not be null, empty, blank or not provided")
     private String firstName;
 
-    @NotBlank(message = "Last Name cannot be not provided, null, empty or blank")
+    @NotBlank(message = "Last Name must not be null, empty, blank or not provided")
     private String lastName;
 
-    @NotBlank(message = "Speciality cannot be not provided, null, empty or blank")
+    @NotBlank(message = "Speciality must not be null, empty, blank or not provided")
     private String specialty;
 
-    @NotNull(message = "Phone number cannot be not provided or null")
-    @Pattern(regexp = "^\\+\\d{7,15}$", message = "Phone number should be valid")
+    @NotNull(message = "Phone number must not be null or not provided")
+    @Pattern(regexp = "^\\+\\d{7,15}$", message = "Phone number must be valid")
     private String phoneNumber;
 
-    @NotNull(message = "Email cannot be not provided or null")
-    @Email(message = "Email should be valid")
+    @NotNull(message = "Email must not be not provided or null")
+    @Email(message = "Email must be valid")
     private String email;
 
-    @NotNull(message = "Status cannot be not provided or null")
+    @NotNull(message = "Status must not be null or not provided")
     private Boolean isActive;
 
 

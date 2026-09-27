@@ -9,6 +9,6 @@ import org.example.enums.AppointmentStatus;
 @Setter
 public class AppointmentStatusRequestDTO {
 
-    @NotNull(message = "Appointment Status cannot be null")
+    @NotNull(message = "Appointment Status must not be null or not provided")
     private AppointmentStatus appointmentStatus;
 }

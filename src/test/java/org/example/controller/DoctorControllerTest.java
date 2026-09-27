@@ -16,7 +16,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +43,7 @@ public class DoctorControllerTest {
 
 
         Map<String, String> messageMap = new HashMap<>();
-        messageMap.put("email","Email should be valid");
+        messageMap.put("email","Email must be valid");
 
 
         mockMvc.perform(post("/api/doctor")
@@ -64,7 +63,7 @@ public class DoctorControllerTest {
         DoctorRequestDTO doctorRequestDTO =  new DoctorRequestDTO("John","John","Cardiology","+123","john@john.com",true);
 
         Map<String,String> map = new HashMap<>();
-        map.put("phoneNumber","Phone number should be valid");
+        map.put("phoneNumber","Phone number must be valid");
 
         mockMvc.perform(put("/api/doctor/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,7 +86,7 @@ public class DoctorControllerTest {
 
 
         Map<String, String> messageMap = new HashMap<>();
-        messageMap.put("email","Email should be valid");
+        messageMap.put("email","Email must be valid");
 
 
         mockMvc.perform(patch("/api/doctor/1")

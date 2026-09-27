@@ -12,21 +12,21 @@ import java.time.LocalDate;
 public class PatientRequestDTO {
 
 
-    @NotBlank(message = "First Name cannot be null, empty or blank")
+    @NotBlank(message = "First Name must not be null, empty, blank or not provided")
     private String firstName;
 
-    @NotBlank(message = "Last Name cannot be null, empty or blank")
+    @NotBlank(message = "Last Name must not be null, empty, blank or not provided")
     private String lastName;
 
-    @PastOrPresent(message= "The date of birth should be today or in the past")
+    @PastOrPresent(message= "The date of birth must be today or in the past")
     private LocalDate dateOfBirth;
 
-    @NotNull(message = "Phone number cannot be null")
-    @Pattern(regexp = "^\\+\\d{7,15}$", message = "Phone number should be valid")
+    @NotNull(message = "Phone number must not be null or not provided")
+    @Pattern(regexp = "^\\+\\d{7,15}$", message = "Phone number must be valid")
     private String phoneNumber;
 
-    @NotNull(message = "Email cannot be null")
-    @Email(message = "Email should be valid")
+    @NotNull(message = "Email must not be null or not provided")
+    @Email(message = "Email must be valid")
     private String email;
 
 

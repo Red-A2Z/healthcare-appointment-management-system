@@ -209,7 +209,7 @@ public class DoctorAvailabilityServiceTest {
                         doctorAvailabilityId,
                         doctorAvailabilityPatchRequestDTO));
 
-        assertEquals("Start time shouldn't be after end time. Consider checking the already saved values",invalidDateRangeException.getMessage());
+        assertEquals("Start time must be before end time. Consider checking the already saved values",invalidDateRangeException.getMessage());
 
         verify(doctorAvailabilityRepository,never()).save(any(DoctorAvailability.class));
 

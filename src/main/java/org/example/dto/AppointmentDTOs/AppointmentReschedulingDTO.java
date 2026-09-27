@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 @Setter
 public class AppointmentReschedulingDTO {
 
-    @NotNull(message = "Start time cannot be null")
-    @FutureOrPresent(message = "Start time shouldn't be in the past")
+    @NotNull(message = "Start time must not be null or not provided")
+    @FutureOrPresent(message = "Start time must not be in the past")
     private LocalDateTime startTime;
 
-    @NotNull(message = "End time cannot be null")
-    @FutureOrPresent(message = "End time shouldn't be in the past")
+    @NotNull(message = "End time must not be null or not provided")
+    @FutureOrPresent(message = "End time must not be in the past")
     private LocalDateTime endTime;
 
 

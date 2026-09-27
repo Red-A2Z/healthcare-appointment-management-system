@@ -15,30 +15,30 @@ import java.time.LocalDate;
 public class PatientPatchRequestDTO {
 
     private JsonNullable<
-            @NotBlank(message = "First Name cannot be null, empty or blank")
+            @NotBlank(message = "First Name must not be null, empty or blank")
                     String> firstName;
 
 
     private JsonNullable<
-            @NotBlank(message = "Last Name cannot be null, empty or blank")
+            @NotBlank(message = "Last Name must not be null, empty or blank")
                     String> lastName;
 
 
     private JsonNullable<
-            @PastOrPresent(message= "The date of birth should be today or in the past")
+            @PastOrPresent(message= "The date of birth must be today or in the past")
                     LocalDate> dateOfBirth;
 
 
     private JsonNullable<
-            @NotNull(message = "Phone number cannot be null")
-            @Pattern(regexp = "^\\+\\d{7,15}$", message = "Phone number should be valid")
+            @NotNull(message = "Phone number must not be null")
+            @Pattern(regexp = "^\\+\\d{7,15}$", message = "Phone number must be valid")
                     String> phoneNumber;
 
 
 
     private JsonNullable<
-            @NotNull(message = "Email cannot be null")
-            @Email(message = "Email should be valid")
+            @NotNull(message = "Email must not be null")
+            @Email(message = "Email must be valid")
                     String> email;
 
 }

@@ -31,7 +31,7 @@ public class DoctorAvailabilityController {
         LocalDateTime startTime = doctorAvailabilityRequestDTO.getStartTime();
         LocalDateTime endTime = doctorAvailabilityRequestDTO.getEndTime();
         if(startTime.isAfter(endTime) || startTime.isEqual(endTime)){
-            throw new InvalidDateRangeException("Start time shouldn't be after end time");
+            throw new InvalidDateRangeException("Start time must be before end time");
 
         }
 
@@ -61,7 +61,7 @@ public class DoctorAvailabilityController {
         LocalDateTime startTime = doctorAvailabilityRequestDTO.getStartTime();
         LocalDateTime endTime = doctorAvailabilityRequestDTO.getEndTime();
         if(startTime.isAfter(endTime) || startTime.isEqual(endTime)){
-            throw new InvalidDateRangeException("Start time shouldn't be after end time");
+            throw new InvalidDateRangeException("Start time must be before end time");
 
         }
 
@@ -92,7 +92,7 @@ public class DoctorAvailabilityController {
             LocalDateTime startTime = doctorAvailabilityPatchRequestDTO.getStartTime().get();
             LocalDateTime endTime = doctorAvailabilityPatchRequestDTO.getEndTime().get();
             if(startTime.isAfter(endTime) || startTime.isEqual(endTime)){
-                throw new InvalidDateRangeException("Start time shouldn't be after end time");
+                throw new InvalidDateRangeException("Start time must be before end time");
             }
 
         }

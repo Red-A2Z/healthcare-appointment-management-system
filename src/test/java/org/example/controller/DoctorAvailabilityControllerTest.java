@@ -45,7 +45,7 @@ public class DoctorAvailabilityControllerTest {
 
 
         Map<String,String> responseMap = new HashMap<>();
-        responseMap.put("startTime","Start time shouldn't be in the past");
+        responseMap.put("startTime","Start time must not be in the past");
 
         mockMvc.perform(post("/api/doctoravailability")
                        .contentType(MediaType.APPLICATION_JSON)
@@ -69,7 +69,7 @@ public class DoctorAvailabilityControllerTest {
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(doctorAvailabilityRequestDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Start time shouldn't be after end time"));
+                .andExpect(jsonPath("$.message").value("Start time must be before end time"));
 
 
 
