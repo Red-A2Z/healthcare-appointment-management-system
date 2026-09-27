@@ -1,7 +1,7 @@
 package org.example.service;
 
 import org.example.dto.DoctorDTOs.DoctorRequestDTO;
-import org.example.exception.DuplicateResourceException;
+import org.example.exception.ConflictExcpetions.children.DuplicateResourceException;
 import org.example.repository.DoctorRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

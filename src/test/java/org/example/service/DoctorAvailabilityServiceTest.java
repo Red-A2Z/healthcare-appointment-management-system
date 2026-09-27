@@ -7,7 +7,7 @@ import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
 import org.example.exception.InvalidDateRangeException;
 import org.example.exception.ResourceNotFoundException;
-import org.example.exception.TimePeriodAlreadyCoveredException;
+import org.example.exception.ConflictExcpetions.children.TimePeriodAlreadyCoveredException;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
 import org.junit.jupiter.api.Test;

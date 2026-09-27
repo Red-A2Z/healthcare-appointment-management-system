@@ -4,7 +4,7 @@ import org.example.dto.DoctorDTOs.DoctorPatchRequestDTO;
 import org.example.dto.DoctorDTOs.DoctorRequestDTO;
 import org.example.dto.DoctorDTOs.DoctorResponseDTO;
 import org.example.entity.Doctor;
-import org.example.exception.DuplicateResourceException;
+import org.example.exception.ConflictExcpetions.children.DuplicateResourceException;
 import org.example.exception.ResourceNotFoundException;
 import org.example.repository.DoctorRepository;
 import org.springframework.stereotype.Service;

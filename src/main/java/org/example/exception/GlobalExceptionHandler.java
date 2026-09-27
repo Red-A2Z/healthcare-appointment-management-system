@@ -4,7 +4,9 @@ package org.example.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.dto.ExceptionDTOs.ExceptionResponseDTO;
 import org.example.dto.ExceptionDTOs.MethodArgumentNotValidExceptionResponseDTO;
-import org.example.exception.AppointmentStatusConflictExceptions.AppointmentStatusConflictException;
+import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusConflictException;
+import org.example.exception.ConflictExcpetions.children.*;
+import org.example.exception.ConflictExcpetions.parent.ConflictException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -54,84 +56,6 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(TimePeriodAlreadyCoveredException.class)
-    public ResponseEntity<ExceptionResponseDTO> handleTimePeriodAlreadyCoveredException(TimePeriodAlreadyCoveredException ex, HttpServletRequest httpServletRequest){
-
-        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
-                LocalDateTime.now(),
-                httpServletRequest.getRequestURI(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
-
-    }
-
-
-
-    @ExceptionHandler(DoctorInactiveException.class)
-    public ResponseEntity<ExceptionResponseDTO> handleDoctorInactiveException(DoctorInactiveException ex, HttpServletRequest httpServletRequest){
-
-        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
-                LocalDateTime.now(),
-                httpServletRequest.getRequestURI(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
-
-    }
-
-    @ExceptionHandler(PatientAppointmentConflictException.class)
-    public ResponseEntity<ExceptionResponseDTO> handlePatientAppointmentConflictException(PatientAppointmentConflictException ex, HttpServletRequest httpServletRequest){
-
-        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
-                LocalDateTime.now(),
-                httpServletRequest.getRequestURI(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
-
-    }
-
-
-    @ExceptionHandler(AppointmentCOMPLETEDException.class)
-    public ResponseEntity<ExceptionResponseDTO> handleAppointmentCOMPLETEDException(AppointmentCOMPLETEDException ex, HttpServletRequest httpServletRequest){
-
-        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
-                LocalDateTime.now(),
-                httpServletRequest.getRequestURI(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
-
-    }
-
-    @ExceptionHandler(AppointmentStatusConflictException.class)
-    public ResponseEntity<ExceptionResponseDTO> handleAppointmentStatusConflictException(AppointmentStatusConflictException ex, HttpServletRequest httpServletRequest){
-
-        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
-                LocalDateTime.now(),
-                httpServletRequest.getRequestURI(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exceptionResponseDTO);
-
-    }
-
 
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -151,8 +75,8 @@ public class GlobalExceptionHandler {
 
 
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ExceptionResponseDTO> handleDuplicateResourceException(DuplicateResourceException ex, HttpServletRequest httpServletRequest){
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleConflictException(ConflictException ex, HttpServletRequest httpServletRequest){
 
         ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
                 LocalDateTime.now(),
