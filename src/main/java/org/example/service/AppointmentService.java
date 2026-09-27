@@ -214,6 +214,12 @@ public class AppointmentService {
 
         Doctor newDoctor = doctorRepository.findById(doctorId).orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
+        // Doctor must be active
+        if(newDoctor.getIsActive().equals(false)){
+            throw new DoctorInactiveException("Doctor with id: "+doctorId+" is inactive");
+        }
+
+
         //Doctor must be available
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
         DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList, appointment);

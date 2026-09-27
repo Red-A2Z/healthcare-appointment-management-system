@@ -7,6 +7,7 @@ import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityResponseDTO;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
+import org.example.exception.ConflictExcpetions.children.DoctorInactiveException;
 import org.example.exception.InvalidDateRangeException;
 import org.example.exception.ResourceNotFoundException;
 import org.example.exception.ConflictExcpetions.children.TimePeriodAlreadyCoveredException;
@@ -39,6 +40,11 @@ public class DoctorAvailabilityService {
         Doctor doctor = doctorRepository.findById(doctorId)
                                         .orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
+
+        // Doctor must be active
+        if(doctor.getIsActive().equals(false)){
+            throw new DoctorInactiveException("Doctor with id: "+doctorId+" is inactive");
+        }
 
         DoctorAvailability newDoctorAvailability = new DoctorAvailability();
         newDoctorAvailability.setStartTime(doctorAvailabilityRequestDTO.getStartTime());
