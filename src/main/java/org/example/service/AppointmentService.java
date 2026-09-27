@@ -69,7 +69,7 @@ public class AppointmentService {
 
 
         // Patient cannot have overlapping appointments
-        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
+        List<Appointment> patientAppointmentList = getRelevantPatientAppointments(newAppointment);
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,newAppointment);
 
         //Doctor must be available
@@ -82,6 +82,16 @@ public class AppointmentService {
     }
 
 
+
+    public List<Appointment> getRelevantPatientAppointments(Appointment appointment){
+
+        Specification<Appointment> spec = Specification.unrestricted();
+        spec = spec.and((root,query,builder)-> builder.equal(root.get("patientId"),appointment.getPatient().getId()));
+        spec = spec.and((root,query,builder)-> builder.equal(root.get("appointmentStatus"),AppointmentStatus.SCHEDULED));
+        spec = spec.and((root,query,builder)-> builder.greaterThan(root.get("endTime"),appointment.getStartTime()));
+
+        return appointmentRepository.findAll(spec);
+    }
 
 
     public void checkAppointmentAgainstPatientAppointments(List<Appointment> patientAppointmentList,Appointment newAppointment){
@@ -269,7 +279,7 @@ public class AppointmentService {
         Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
 
         // Patient cannot have overlapping appointments
-        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
+        List<Appointment> patientAppointmentList = getRelevantPatientAppointments(appointment);
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
         appointment.setPatient(newPatient);
@@ -308,8 +318,7 @@ public class AppointmentService {
         appointment.setEndTime(appointmentReschedulingDTO.getEndTime());
 
         // Patient cannot have overlapping appointments
-        Long patientId = appointment.getPatient().getId();
-        List<Appointment> patientAppointmentList = appointmentRepository.findAllByPatientId(patientId);
+        List<Appointment> patientAppointmentList = getRelevantPatientAppointments(appointment);
         patientAppointmentList.removeIf(obj -> obj.getId().equals(id));
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
@@ -450,7 +459,7 @@ public class AppointmentService {
     public AppointmentListResponseDTO queryAppointments(AppointmentQueryRequestDTO appointmentQueryRequestDTO){
 
 
-        Specification<Appointment> spec = Specification.where(Specification.unrestricted());
+        Specification<Appointment> spec = Specification.unrestricted();
 
 
         if(appointmentQueryRequestDTO.getDoctorId().isPresent()){
