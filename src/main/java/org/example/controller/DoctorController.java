@@ -47,15 +47,6 @@ public class DoctorController {
     }
 
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteDoctor( @PathVariable Long id){
-
-        doctorService.deleteDoctor(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-
 
     @PatchMapping("/{id}")
     public ResponseEntity<DoctorResponseDTO> updateSomeFieldsForDoctor(@PathVariable Long id,

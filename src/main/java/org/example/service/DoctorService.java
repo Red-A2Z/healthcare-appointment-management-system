@@ -77,13 +77,6 @@ public class DoctorService {
     }
 
 
-    public void deleteDoctor(Long id){
-
-        Doctor doctor = doctorRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No doctor found for id: "+ id));
-
-        doctorRepository.delete(doctor);
-
-    }
 
 
 

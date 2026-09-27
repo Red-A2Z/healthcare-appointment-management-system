@@ -48,16 +48,6 @@ public class PatientController {
 
 
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletePatient(@PathVariable Long id){
-
-        patientService.deletePatient(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-
-
 
     @PatchMapping("/{id}")
     public ResponseEntity<PatientResponseDTO> updateSomeFieldsForPatient(@PathVariable Long id,

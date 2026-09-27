@@ -80,14 +80,6 @@ public class PatientService {
 
 
 
-    public void deletePatient(Long id){
-
-        Patient patient  = patientRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No patient found for id: "+ id));
-
-        patientRepository.delete(patient);
-
-    }
-
 
 
 

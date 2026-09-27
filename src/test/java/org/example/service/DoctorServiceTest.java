@@ -1,9 +1,7 @@
 package org.example.service;
 
 import org.example.dto.DoctorDTOs.DoctorRequestDTO;
-import org.example.entity.Doctor;
 import org.example.exception.DuplicateResourceException;
-import org.example.exception.ResourceNotFoundException;
 import org.example.repository.DoctorRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +9,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,20 +39,6 @@ public class DoctorServiceTest {
 
     }
 
-
-    @Test
-    void deleteDoctor_whenNoDoctorFoundForID_throwsException(){
-
-        Long doctorId = 1L;
-
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException resourceNotFoundException = assertThrows(ResourceNotFoundException.class,()->doctorService.deleteDoctor(doctorId));
-
-        assertEquals("No doctor found for id: "+ doctorId,resourceNotFoundException.getMessage());
-
-        verify(doctorRepository,never()).delete(any(Doctor.class));
-    }
 
 
 
