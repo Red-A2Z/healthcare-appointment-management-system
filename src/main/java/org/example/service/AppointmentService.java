@@ -319,11 +319,9 @@ public class AppointmentService {
         }
 
 
-        Long doctorId = appointment.getDoctor().getId();
-
         // Doctor must be active
         if(appointment.getDoctor().getIsActive().equals(false)){
-            throw new DoctorInactiveException("Doctor with id: "+doctorId+" is inactive");
+            throw new DoctorInactiveException("Doctor with id: "+appointment.getDoctor().getId()+" is inactive");
         }
 
         LocalDateTime startTimeToFree = appointment.getStartTime();

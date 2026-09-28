@@ -42,9 +42,9 @@ public class DoctorService {
 
         Doctor doctor = mapToEntity(doctorRequestDTO);
 
-        Doctor savedDoctor = doctorRepository.save(doctor);
+        doctorRepository.save(doctor);
 
-        return mapToDoctorResponseDTO(savedDoctor);
+        return mapToDoctorResponseDTO(doctor);
 
     }
 
