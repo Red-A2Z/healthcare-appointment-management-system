@@ -2,15 +2,19 @@ package org.example.controller;
 
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.example.dto.AppointmentDTOs.*;
 import org.example.exception.InvalidDateRangeException;
 import org.example.service.AppointmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/appointment")
+@Validated
 public class AppointmentController {
 
     AppointmentService appointmentService;
@@ -35,7 +39,10 @@ public class AppointmentController {
 
 
     @PatchMapping("/doctor/{id}")
-    public ResponseEntity<AppointmentResponseDTO> updateDoctorIdForAppointment(@PathVariable Long id,
+    public ResponseEntity<AppointmentResponseDTO> updateDoctorIdForAppointment(@PathVariable
+                                                                                   @NotNull(message = "Appointment ID must not be null or not provided")
+                                                                                   @Positive(message = "Appointment ID must be positive")
+                                                                                   Long id,
                                                                                @Valid @RequestBody AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO){
 
         return ResponseEntity.ok(appointmentService.updateDoctorIdForAppointment(id,appointmentDoctorIdPatchDTO));
@@ -43,7 +50,10 @@ public class AppointmentController {
 
 
     @PatchMapping("/patient/{id}")
-    public ResponseEntity<AppointmentResponseDTO> updatePatientIdForAppointment(@PathVariable Long id,
+    public ResponseEntity<AppointmentResponseDTO> updatePatientIdForAppointment(@PathVariable
+                                                                                    @NotNull(message = "Appointment ID must not be null or not provided")
+                                                                                    @Positive(message = "Appointment ID must be positive")
+                                                                                    Long id,
                                                                                @Valid @RequestBody AppointmentPatientIdPatchDTO appointmentPatientIdPatchDTO){
 
         return ResponseEntity.ok(appointmentService.updatePatientIdForAppointment(id,appointmentPatientIdPatchDTO));
@@ -51,8 +61,11 @@ public class AppointmentController {
 
 
     @PatchMapping("/reschedule/{id}")
-    public ResponseEntity<AppointmentResponseDTO> rescheduleAppointment(@PathVariable Long id,
-                                                                                @Valid @RequestBody AppointmentReschedulingDTO appointmentReschedulingDTO){
+    public ResponseEntity<AppointmentResponseDTO> rescheduleAppointment(@PathVariable
+                                                                            @NotNull(message = "Appointment ID must not be null or not provided")
+                                                                            @Positive(message = "Appointment ID must be positive")
+                                                                            Long id,
+                                                                        @Valid @RequestBody AppointmentReschedulingDTO appointmentReschedulingDTO){
 
         if(!appointmentReschedulingDTO.getStartTime().isBefore(appointmentReschedulingDTO.getEndTime())){
             throw new InvalidDateRangeException("Start time must be before end time");
@@ -62,7 +75,10 @@ public class AppointmentController {
     }
 
     @PatchMapping("/reasonforvisit/{id}")
-    public ResponseEntity<AppointmentResponseDTO> updateRFV(@PathVariable Long id,
+    public ResponseEntity<AppointmentResponseDTO> updateRFV(@PathVariable
+                                                                @NotNull(message = "Appointment ID must not be null or not provided")
+                                                                @Positive(message = "Appointment ID must be positive")
+                                                                Long id,
                                                             @Valid @RequestBody AppointmentRFVPatchDTO appointmentRFVPatchDTO){
 
         return ResponseEntity.ok(appointmentService.updateRFV(id,appointmentRFVPatchDTO));
@@ -70,7 +86,10 @@ public class AppointmentController {
 
 
     @PatchMapping("/status/{id}")
-    public ResponseEntity<AppointmentResponseDTO> updateAppointmentStatus(@PathVariable Long id,
+    public ResponseEntity<AppointmentResponseDTO> updateAppointmentStatus(@PathVariable
+                                                                              @NotNull(message = "Appointment ID must not be null or not provided")
+                                                                              @Positive(message = "Appointment ID must be positive")
+                                                                              Long id,
                                                                           @Valid @RequestBody AppointmentStatusRequestDTO appointmentStatusRequestDTO){
 
 
@@ -84,7 +103,10 @@ public class AppointmentController {
 
 
     @GetMapping
-    public ResponseEntity<AppointmentResponseDTO> readAppointment(@RequestParam Long id){
+    public ResponseEntity<AppointmentResponseDTO> readAppointment(@RequestParam
+                                                                      @NotNull(message = "Appointment ID must not be null or not provided")
+                                                                      @Positive(message = "Appointment ID must be positive")
+                                                                      Long id){
 
         return ResponseEntity.ok(appointmentService.readAppointment(id));
 
