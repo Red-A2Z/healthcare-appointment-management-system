@@ -558,6 +558,7 @@ public class AppointmentService {
         appointmentResponseDTO.setEndTime(appointment.getEndTime());
         appointmentResponseDTO.setReasonForVisit(appointment.getReasonForVisit());
         appointmentResponseDTO.setAppointmentStatus(appointment.getAppointmentStatus());
+        appointmentResponseDTO.setCreatedAt(appointment.getCreatedAt());
 
         return appointmentResponseDTO;
 

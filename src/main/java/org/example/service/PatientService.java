@@ -145,6 +145,7 @@ public class PatientService {
         patientResponseDTO.setDateOfBirth(patient.getDateOfBirth());
         patientResponseDTO.setPhoneNumber(patient.getPhoneNumber());
         patientResponseDTO.setEmail(patient.getEmail());
+        patientResponseDTO.setCreatedAt(patient.getCreatedAt());
 
         return patientResponseDTO;
     }
