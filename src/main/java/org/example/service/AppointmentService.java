@@ -12,7 +12,7 @@ import org.example.enums.AppointmentStatus;
 import org.example.exception.*;
 import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusTimingConflictException;
 import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusValueConflictException;
-import org.example.exception.ConflictExcpetions.children.AppointmentCOMPLETEDException;
+import org.example.exception.ConflictExcpetions.children.AppointmentNotUpdatableException;
 import org.example.exception.ConflictExcpetions.children.DoctorInactiveException;
 import org.example.exception.ConflictExcpetions.children.DoctorUnavailableException;
 import org.example.exception.ConflictExcpetions.children.PatientAppointmentConflictException;
@@ -202,15 +202,16 @@ public class AppointmentService {
 
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
 
+        if(!(appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED)
+                && appointment.getStartTime().isAfter(LocalDateTime.now()))){
+            throw new AppointmentNotUpdatableException("Appointment can no longer be updated");
+        }
 
         Long doctorId = appointmentDoctorIdPatchDTO.getDoctorId();
         if(Objects.equals(doctorId, appointment.getDoctor().getId())){
             return mapToAppointmentResponseDTO(appointment);
         }
 
-        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
-            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot have doctor changed");
-        }
 
         Doctor newDoctor = doctorRepository.findById(doctorId).orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
@@ -276,15 +277,17 @@ public class AppointmentService {
 
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
 
+        if(!(appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED)
+                && appointment.getStartTime().isAfter(LocalDateTime.now()))){
+            throw new AppointmentNotUpdatableException("Appointment can no longer be updated");
+        }
+
 
         Long patientId = appointmentPatientIdPatchDTO.getPatientId();
         if(Objects.equals(patientId, appointment.getPatient().getId())){
             return mapToAppointmentResponseDTO(appointment);
         }
 
-        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
-            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot have patient changed");
-        }
 
         Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
 
@@ -308,10 +311,11 @@ public class AppointmentService {
 
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
 
-
-        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
-            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot be rescheduled");
+        if(!(appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED)
+                && appointment.getStartTime().isAfter(LocalDateTime.now()))){
+            throw new AppointmentNotUpdatableException("Appointment can no longer be updated");
         }
+
 
         Long doctorId = appointment.getDoctor().getId();
 
@@ -365,8 +369,9 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
 
-        if(appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED)){
-            throw new AppointmentCOMPLETEDException("Appointments marked as COMPLETED cannot have patient changed");
+        if(!(appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED)
+                && appointment.getStartTime().isAfter(LocalDateTime.now()))){
+            throw new AppointmentNotUpdatableException("Appointment can no longer be updated");
         }
 
         appointment.setReasonForVisit(appointmentRFVPatchDTO.getReasonForVisit());
