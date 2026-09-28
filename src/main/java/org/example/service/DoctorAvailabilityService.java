@@ -2,6 +2,7 @@ package org.example.service;
 
 
 import jakarta.transaction.Transactional;
+import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityListResponseDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityPatchRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityResponseDTO;
@@ -71,6 +72,25 @@ public class DoctorAvailabilityService {
 
         return mapToDoctorAvailabilityResponseDTO(doctorAvailability);
     }
+
+
+    public DoctorAvailabilityListResponseDTO readAllDoctorAvailabilities(Long doctorId){
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(()-> new ResourceNotFoundException("No doctor found for id: "+doctorId));
+
+
+        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
+
+        DoctorAvailabilityListResponseDTO doctorAvailabilityListResponseDTO = new DoctorAvailabilityListResponseDTO();
+        doctorAvailabilityListResponseDTO.setDoctorId(doctorId);
+        doctorAvailabilityListResponseDTO.setDoctorActive(doctor.getIsActive());
+        doctorAvailabilityListResponseDTO.setDoctorAvailabilityList(doctorAvailabilityList);
+
+        return doctorAvailabilityListResponseDTO;
+    }
+
+
 
 
 

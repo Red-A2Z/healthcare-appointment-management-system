@@ -2,6 +2,7 @@ package org.example.controller;
 
 
 import jakarta.validation.Valid;
+import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityListResponseDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityPatchRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityResponseDTO;
@@ -46,6 +47,13 @@ public class DoctorAvailabilityController {
     public ResponseEntity<DoctorAvailabilityResponseDTO> readDoctorAvailability(@RequestParam Long id){
 
         return ResponseEntity.ok(doctorAvailabilityService.readDoctorAvailability(id));
+    }
+
+
+    @GetMapping("/list")
+    public ResponseEntity<DoctorAvailabilityListResponseDTO> readAllDoctorAvailabilities(@RequestParam Long doctorId){
+
+        return ResponseEntity.ok(doctorAvailabilityService.readAllDoctorAvailabilities(doctorId));
     }
 
 

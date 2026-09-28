@@ -3,10 +3,8 @@ package org.example.dto.DoctorDTOs;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.entity.DoctorAvailability;
 
 import java.time.Instant;
-import java.util.List;
 
 
 
@@ -25,7 +23,6 @@ public class DoctorResponseDTO {
     private Boolean isActive;
     private Instant createdAt;
 
-    private List<DoctorAvailability> doctorAvailabilityList;
 
 
 
