@@ -22,8 +22,7 @@ public class AppointmentController {
     @PostMapping
     public ResponseEntity<AppointmentResponseDTO> createAppointment(@Valid @RequestBody AppointmentRequestDTO appointmentRequestDTO){
 
-        if(appointmentRequestDTO.getStartTime().isAfter(appointmentRequestDTO.getEndTime())
-        || appointmentRequestDTO.getStartTime().isEqual(appointmentRequestDTO.getEndTime())){
+        if(!appointmentRequestDTO.getStartTime().isBefore(appointmentRequestDTO.getEndTime())){
 
             throw new InvalidDateRangeException("Start time must be before end time");
 

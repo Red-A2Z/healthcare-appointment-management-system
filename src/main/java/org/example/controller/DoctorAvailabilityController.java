@@ -28,13 +28,11 @@ public class DoctorAvailabilityController {
     @PostMapping
     public ResponseEntity<DoctorAvailabilityResponseDTO> createDoctorAvailability(@Valid @RequestBody DoctorAvailabilityRequestDTO doctorAvailabilityRequestDTO){
 
-        LocalDateTime startTime = doctorAvailabilityRequestDTO.getStartTime();
-        LocalDateTime endTime = doctorAvailabilityRequestDTO.getEndTime();
-        if(startTime.isAfter(endTime) || startTime.isEqual(endTime)){
+
+        if(!doctorAvailabilityRequestDTO.getStartTime().isBefore(doctorAvailabilityRequestDTO.getEndTime())){
             throw new InvalidDateRangeException("Start time must be before end time");
 
         }
-
 
         DoctorAvailabilityResponseDTO doctorAvailabilityResponseDTO = doctorAvailabilityService.createDoctorAvailability(doctorAvailabilityRequestDTO);
 
@@ -58,9 +56,7 @@ public class DoctorAvailabilityController {
                                                                                   @Valid @RequestBody DoctorAvailabilityRequestDTO doctorAvailabilityRequestDTO){
 
 
-        LocalDateTime startTime = doctorAvailabilityRequestDTO.getStartTime();
-        LocalDateTime endTime = doctorAvailabilityRequestDTO.getEndTime();
-        if(startTime.isAfter(endTime) || startTime.isEqual(endTime)){
+        if(!doctorAvailabilityRequestDTO.getStartTime().isBefore(doctorAvailabilityRequestDTO.getEndTime())){
             throw new InvalidDateRangeException("Start time must be before end time");
 
         }
@@ -91,7 +87,7 @@ public class DoctorAvailabilityController {
 
             LocalDateTime startTime = doctorAvailabilityPatchRequestDTO.getStartTime().get();
             LocalDateTime endTime = doctorAvailabilityPatchRequestDTO.getEndTime().get();
-            if(startTime.isAfter(endTime) || startTime.isEqual(endTime)){
+            if(!startTime.isBefore(endTime)){
                 throw new InvalidDateRangeException("Start time must be before end time");
             }
 

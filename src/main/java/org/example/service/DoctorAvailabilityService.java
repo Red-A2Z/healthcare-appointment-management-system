@@ -160,8 +160,7 @@ public class DoctorAvailabilityService {
         if((!isStartTimePresent && isEndTimePresent)
                 || (!isEndTimePresent && isStartTimePresent) ){
 
-            if(doctorAvailability.getStartTime().isAfter(doctorAvailability.getEndTime())
-                    || doctorAvailability.getStartTime().isEqual(doctorAvailability.getEndTime())){
+            if(!doctorAvailability.getStartTime().isBefore(doctorAvailability.getEndTime())){
 
                 throw new InvalidDateRangeException("Start time must be before end time. Consider checking the already saved values");
 
@@ -224,16 +223,16 @@ public class DoctorAvailabilityService {
         for(DoctorAvailability element:listForLoop){
 
 
-            boolean isBeforeOrEqual_element = element.getStartTime().isBefore(newDoctorAvailability.getStartTime()) || element.getStartTime().isEqual(newDoctorAvailability.getStartTime());
-            boolean isAfterOrEqual_element = element.getEndTime().isAfter(newDoctorAvailability.getEndTime()) || element.getEndTime().isEqual(newDoctorAvailability.getEndTime());
+            boolean isBeforeOrEqual_element = !element.getStartTime().isAfter(newDoctorAvailability.getStartTime());
+            boolean isAfterOrEqual_element = !element.getEndTime().isBefore(newDoctorAvailability.getEndTime());
 
             if(isBeforeOrEqual_element && isAfterOrEqual_element){ // newDoctorAvailability is 'inside' element
                 throw new TimePeriodAlreadyCoveredException("The provided period is already covered by an existing one");
             }
 
 
-            boolean isBeforeOrEqual_new = newDoctorAvailability.getStartTime().isBefore(element.getStartTime()) || newDoctorAvailability.getStartTime().isEqual(element.getStartTime());
-            boolean isAfterOrEqual_new = newDoctorAvailability.getEndTime().isAfter(element.getEndTime()) || newDoctorAvailability.getEndTime().isEqual(element.getEndTime());
+            boolean isBeforeOrEqual_new = !newDoctorAvailability.getStartTime().isAfter(element.getStartTime());
+            boolean isAfterOrEqual_new = !newDoctorAvailability.getEndTime().isBefore(element.getEndTime());
 
             if(isBeforeOrEqual_new && isAfterOrEqual_new){ // element is 'inside' newDoctorAvailability
 
@@ -262,7 +261,7 @@ public class DoctorAvailabilityService {
             DoctorAvailability element_a = truncatedList.get(i);
             DoctorAvailability element_b = truncatedList.get(i+1);
 
-            if(element_a.getEndTime().isAfter(element_b.getStartTime()) || element_a.getEndTime().isEqual(element_b.getStartTime())){
+            if(!element_a.getEndTime().isBefore(element_b.getStartTime())){
 
                 if(element_a== newDoctorAvailability){
                     doctorAvailabilitiesToDelete.add(element_b);
