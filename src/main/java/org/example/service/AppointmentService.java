@@ -4,6 +4,7 @@ package org.example.service;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.example.dto.AppointmentDTOs.*;
+import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.entity.Appointment;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
@@ -37,14 +38,16 @@ public class AppointmentService {
     DoctorRepository doctorRepository;
     DoctorAvailabilityRepository doctorAvailabilityRepository;
     PatientRepository patientRepository;
+    DoctorAvailabilityService doctorAvailabilityService;
 
-
-    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, DoctorAvailabilityRepository doctorAvailabilityRepository, PatientRepository patientRepository) {
+    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, DoctorAvailabilityRepository doctorAvailabilityRepository, PatientRepository patientRepository, DoctorAvailabilityService doctorAvailabilityService) {
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.doctorAvailabilityRepository = doctorAvailabilityRepository;
         this.patientRepository = patientRepository;
+        this.doctorAvailabilityService = doctorAvailabilityService;
     }
+
 
 
 
@@ -163,13 +166,11 @@ public class AppointmentService {
     @Transactional
     public void saveAppointmentAndPerformRelatedActions( DoctorAvailability doctorAvailability, Appointment appointment){
 
-        DoctorAvailability newDoctorAvailabilityLeft = new DoctorAvailability(null,
-                doctorAvailability.getDoctor(),
+        DoctorAvailabilityRequestDTO newDoctorAvailabilityLeft = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
                 doctorAvailability.getStartTime(),
                 appointment.getStartTime());
 
-        DoctorAvailability newDoctorAvailabilityRight = new DoctorAvailability(null,
-                doctorAvailability.getDoctor(),
+        DoctorAvailabilityRequestDTO newDoctorAvailabilityRight = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
                 appointment.getEndTime(),
                 doctorAvailability.getEndTime());
 
@@ -177,11 +178,11 @@ public class AppointmentService {
         doctorAvailabilityRepository.delete(doctorAvailability);
 
         if(!newDoctorAvailabilityLeft.getStartTime().isEqual(newDoctorAvailabilityLeft.getEndTime())){
-            doctorAvailabilityRepository.save(newDoctorAvailabilityLeft);
+            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityLeft);
         }
 
         if(!newDoctorAvailabilityRight.getStartTime().isEqual(newDoctorAvailabilityRight.getEndTime())){
-            doctorAvailabilityRepository.save(newDoctorAvailabilityRight);
+            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityRight);
         }
 
         appointment.setAppointmentStatus(AppointmentStatus.SCHEDULED);
@@ -234,30 +235,31 @@ public class AppointmentService {
     @Transactional
     public void changeDoctorAndPerformRelatedActions(Doctor newDoctor, DoctorAvailability doctorAvailability, Appointment appointment){
 
-        DoctorAvailability newDoctorAvailabilityLeft = new DoctorAvailability(null,
-                doctorAvailability.getDoctor(),
+        DoctorAvailabilityRequestDTO newDoctorAvailabilityLeft = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
                 doctorAvailability.getStartTime(),
                 appointment.getStartTime());
 
-        DoctorAvailability newDoctorAvailabilityRight = new DoctorAvailability(null,
-                doctorAvailability.getDoctor(),
+        DoctorAvailabilityRequestDTO newDoctorAvailabilityRight = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
                 appointment.getEndTime(),
                 doctorAvailability.getEndTime());
 
 
         doctorAvailabilityRepository.delete(doctorAvailability);
+
         if(!newDoctorAvailabilityLeft.getStartTime().isEqual(newDoctorAvailabilityLeft.getEndTime())){
-            doctorAvailabilityRepository.save(newDoctorAvailabilityLeft);
+            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityLeft);
         }
 
         if(!newDoctorAvailabilityRight.getStartTime().isEqual(newDoctorAvailabilityRight.getEndTime())){
-            doctorAvailabilityRepository.save(newDoctorAvailabilityRight);
+            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityRight);
         }
 
 
         // Free time for old Doctor
-        DoctorAvailability newAvailabilityForOldDoctor = new DoctorAvailability(null,appointment.getDoctor(),appointment.getStartTime(),appointment.getEndTime());
-        doctorAvailabilityRepository.save(newAvailabilityForOldDoctor);
+        DoctorAvailabilityRequestDTO newAvailabilityForOldDoctor = new DoctorAvailabilityRequestDTO(appointment.getDoctor().getId(),
+                appointment.getStartTime(),
+                appointment.getEndTime());
+        doctorAvailabilityService.createDoctorAvailability(newAvailabilityForOldDoctor);
 
 
         appointment.setDoctor(newDoctor);
@@ -326,7 +328,7 @@ public class AppointmentService {
 
         LocalDateTime startTimeToFree = appointment.getStartTime();
         LocalDateTime endTimeToFree = appointment.getEndTime();
-        DoctorAvailability davWhenAppointmentPeriodIsFreed = new DoctorAvailability(null,appointment.getDoctor(),startTimeToFree,endTimeToFree);
+        DoctorAvailabilityRequestDTO davWhenAppointmentPeriodIsFreed = new DoctorAvailabilityRequestDTO(appointment.getDoctor().getId(),startTimeToFree,endTimeToFree);
 
         appointment.setStartTime(appointmentReschedulingDTO.getStartTime());
         appointment.setEndTime(appointmentReschedulingDTO.getEndTime());
@@ -345,9 +347,9 @@ public class AppointmentService {
 
 
     @Transactional
-    public void checkAppointmentAgainstDAsAndPerformReschedulingActions(DoctorAvailability davWhenAppointmentPeriodIsFreed, Appointment appointment){
+    public void checkAppointmentAgainstDAsAndPerformReschedulingActions(DoctorAvailabilityRequestDTO davWhenAppointmentPeriodIsFreed, Appointment appointment){
 
-        doctorAvailabilityRepository.save(davWhenAppointmentPeriodIsFreed);
+        doctorAvailabilityService.createDoctorAvailability(davWhenAppointmentPeriodIsFreed);
 
         //Doctor must be available
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(appointment.getDoctor().getId());
@@ -440,12 +442,10 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
 
         // free this timeslot for Doctor
-        DoctorAvailability doctorAvailability = new DoctorAvailability();
-        doctorAvailability.setDoctor(appointment.getDoctor());
-        doctorAvailability.setStartTime(appointment.getStartTime());
-        doctorAvailability.setEndTime(appointment.getEndTime());
-
-        doctorAvailabilityRepository.save(doctorAvailability);
+        DoctorAvailabilityRequestDTO doctorAvailability = new DoctorAvailabilityRequestDTO(appointment.getDoctor().getId(),
+                appointment.getStartTime(),
+                appointment.getEndTime());
+        doctorAvailabilityService.createDoctorAvailability(doctorAvailability);
 
 
         return mapToAppointmentResponseDTO(appointment);
