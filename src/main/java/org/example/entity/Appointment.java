@@ -1,7 +1,6 @@
 package org.example.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,7 +10,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 public class Appointment {
@@ -40,4 +38,15 @@ public class Appointment {
     private Instant createdAt;
 
 
+
+
+    public Appointment(Long id, Doctor doctor, Patient patient, LocalDateTime startTime, LocalDateTime endTime, String reasonForVisit, AppointmentStatus appointmentStatus) {
+        this.id = id;
+        this.doctor = doctor;
+        this.patient = patient;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.reasonForVisit = reasonForVisit;
+        this.appointmentStatus = appointmentStatus;
+    }
 }
