@@ -115,8 +115,8 @@ public class AppointmentService {
             LocalDateTime paStartTime = patientAppointment.getStartTime();
             LocalDateTime paEndTime = patientAppointment.getEndTime();
 
-            boolean isStartTimeInsideInterval = !newAppointmentStartTime.isBefore(paStartTime) && !newAppointmentStartTime.isAfter(paEndTime);
-            boolean isEndTimeInsideInterval = !newAppointmentEndTime.isBefore(paStartTime) && !newAppointmentEndTime.isAfter(paEndTime);
+            boolean isStartTimeInsideInterval = !newAppointmentStartTime.isBefore(paStartTime) && newAppointmentStartTime.isBefore(paEndTime);
+            boolean isEndTimeInsideInterval = newAppointmentEndTime.isAfter(paStartTime) && !newAppointmentEndTime.isAfter(paEndTime);
 
             if(isStartTimeInsideInterval || isEndTimeInsideInterval){
 
