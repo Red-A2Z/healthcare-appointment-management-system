@@ -1,6 +1,7 @@
 package org.example.service;
 
 
+import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.entity.Appointment;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
@@ -9,6 +10,7 @@ import org.example.enums.AppointmentStatus;
 import org.example.exception.ConflictExcpetions.children.DoctorUnavailableException;
 import org.example.exception.ConflictExcpetions.children.PatientAppointmentConflictException;
 import org.example.repository.AppointmentRepository;
+import org.example.repository.DoctorAvailabilityRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,12 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AppointmentServiceTest {
 
     @Mock
     AppointmentRepository appointmentRepository;
+
+    @Mock
+    DoctorAvailabilityRepository doctorAvailabilityRepository;
+
+    @Mock
+    DoctorAvailabilityService doctorAvailabilityService;
 
     @InjectMocks
     AppointmentService appointmentService;
@@ -304,10 +313,66 @@ public class AppointmentServiceTest {
 
 
     @Test
-    void saveAppointmentAndPerformRelatedActions_whenAppointmentFullyCoversDAV_savesRemainingDAV(){}
+    void saveAppointmentAndPerformRelatedActions_whenAppointmentFullyCoversDAV_savesTheAppointmentOnly(){
+
+        Doctor doctor =  new Doctor(1L,"John","John","Cardiology","+1234567","john@john.com",true);
+
+
+        DoctorAvailability doctorAvailability = new DoctorAvailability(
+                1L,
+                doctor,
+                LocalDateTime.parse("2030-09-01T08:00:00"),
+                LocalDateTime.parse("2030-09-01T12:00:00"));
+
+
+        Appointment newAppointment = new Appointment(null,
+                doctor,
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2030-09-01T08:00:00"),
+                LocalDateTime.parse("2030-09-01T12:00:00"),
+                "Reason 1",
+                null);
+
+
+        appointmentService.saveAppointmentAndPerformRelatedActions(doctorAvailability,newAppointment);
+
+        verify(doctorAvailabilityRepository).delete(doctorAvailability);
+        verify(doctorAvailabilityRepository,never()).save(any(DoctorAvailability.class));
+        verify(appointmentRepository).save(newAppointment);
+
+
+    }
 
     @Test
-    void saveAppointmentAndPerformRelatedActions_whenAppointmentPartiallyCoversDAV_savesRemainingDAV(){}
+    void saveAppointmentAndPerformRelatedActions_whenAppointmentPartiallyCoversDAV_savesTheAppointmentAndRemainingDAV(){
+
+        Doctor doctor =  new Doctor(1L,"John","John","Cardiology","+1234567","john@john.com",true);
+
+
+        DoctorAvailability doctorAvailability = new DoctorAvailability(
+                1L,
+                doctor,
+                LocalDateTime.parse("2030-09-01T08:00:00"),
+                LocalDateTime.parse("2030-09-01T12:00:00"));
+
+        Appointment newAppointment = new Appointment(null,
+                doctor,
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2030-09-01T09:00:00"),
+                LocalDateTime.parse("2030-09-01T11:00:00"),
+                "Reason 1",
+                null);
+
+
+        appointmentService.saveAppointmentAndPerformRelatedActions(doctorAvailability,newAppointment);
+
+
+        verify(doctorAvailabilityRepository).delete(doctorAvailability);
+        verify(doctorAvailabilityService,times(2)).createDoctorAvailability(any(DoctorAvailabilityRequestDTO.class));
+        verify(appointmentRepository).save(newAppointment);
+
+
+    }
 
 
 
