@@ -1,16 +1,19 @@
 package org.example.service;
 
 
+import org.example.dto.AppointmentDTOs.AppointmentDoctorIdPatchDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.entity.Appointment;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
 import org.example.entity.Patient;
 import org.example.enums.AppointmentStatus;
+import org.example.exception.ConflictExcpetions.children.DoctorInactiveException;
 import org.example.exception.ConflictExcpetions.children.DoctorUnavailableException;
 import org.example.exception.ConflictExcpetions.children.PatientAppointmentConflictException;
 import org.example.repository.AppointmentRepository;
 import org.example.repository.DoctorAvailabilityRepository;
+import org.example.repository.DoctorRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,6 +40,9 @@ public class AppointmentServiceTest {
 
     @Mock
     DoctorAvailabilityService doctorAvailabilityService;
+
+    @Mock
+    DoctorRepository doctorRepository;
 
     @InjectMocks
     AppointmentService appointmentService;
@@ -379,10 +386,100 @@ public class AppointmentServiceTest {
     // ///////////////////////////////////////////
 
     @Test
-    void updateDoctorIdForAppointment_whenAppointmentCanLongerBeUpdatedThrowsException(){}
+    void updateDoctorIdForAppointment_whenAppointmentCanLongerBeUpdatedThrowsException(){
+
+        Long appointmentId = 1L;
+
+        AppointmentDoctorIdPatchDTO appointmentDoctorIdPatchDTO = new AppointmentDoctorIdPatchDTO();
+        appointmentDoctorIdPatchDTO.setDoctorId(2L);
+
+        Doctor oldDoctor =  new Doctor(1L,
+                "John",
+                "John",
+                "Cardiology",
+                "+1234567",
+                "john@john.com",
+                true);
+
+
+
+        Appointment appointment =  new Appointment(null,
+                oldDoctor,
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2030-09-01T08:00:00"),
+                LocalDateTime.parse("2030-09-01T12:00:00"),
+                "Reason 1",
+                AppointmentStatus.SCHEDULED);
+
+        Doctor newDoctor =  new Doctor(appointmentDoctorIdPatchDTO.getDoctorId(),
+                "Sam",
+                "Sam",
+                "Cardiology",
+                "+1234567",
+                "sam@sam.com",
+                false);
+
+
+
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        when(doctorRepository.findById(appointmentDoctorIdPatchDTO.getDoctorId())).thenReturn(Optional.of(newDoctor));
+
+
+        DoctorInactiveException doctorInactiveException = assertThrows(DoctorInactiveException.class,
+                ()->appointmentService.updateDoctorIdForAppointment(appointmentId,appointmentDoctorIdPatchDTO));
+
+        assertEquals("Doctor with id: "+appointmentDoctorIdPatchDTO.getDoctorId()+" is inactive",doctorInactiveException.getMessage());
+
+
+    }
 
     @Test
-    void changeDoctorAndPerformRelatedActions_shouldFreeTimeForOldDoctor(){}
+    void changeDoctorAndPerformRelatedActions_shouldFreeTimeForOldDoctor(){
+
+        Doctor oldDoctor =  new Doctor(1L,
+                "John",
+                "John",
+                "Cardiology",
+                "+1234567",
+                "john@john.com",
+                true);
+
+
+        Doctor newDoctor =  new Doctor(2L,
+                "Sam",
+                "Sam",
+                "Cardiology",
+                "+1234567",
+                "sam@sam.com",
+                false);
+
+        DoctorAvailability doctorAvailability = new DoctorAvailability(
+                1L,
+                newDoctor,
+                LocalDateTime.parse("2030-09-01T08:00:00"),
+                LocalDateTime.parse("2030-09-01T12:00:00"));
+
+
+        Appointment appointment = new Appointment(1L,
+                oldDoctor,
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2030-09-01T09:00:00"),
+                LocalDateTime.parse("2030-09-01T11:00:00"),
+                "Reason 1",
+                null);
+
+
+
+        appointmentService.changeDoctorAndPerformRelatedActions(newDoctor,doctorAvailability,appointment);
+
+
+        verify(doctorAvailabilityRepository).delete(doctorAvailability);
+        verify(doctorAvailabilityService,times(3)).createDoctorAvailability(any(DoctorAvailabilityRequestDTO.class));
+        verify(appointmentRepository).save(appointment);
+
+
+    }
 
 
 
