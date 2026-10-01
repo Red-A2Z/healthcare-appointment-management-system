@@ -88,7 +88,7 @@ public class DoctorService {
 
     public DoctorResponseDTO updateSomeFieldsForDoctor(Long id, DoctorPatchRequestDTO doctorPatchRequestDTO){
 
-        if(doctorPatchRequestDTO.getSpecialty().isPresent()){
+        if(doctorPatchRequestDTO.getEmail().isPresent()){
             if(doctorRepository.existsByEmail(doctorPatchRequestDTO.getEmail().get())){
                 throw new DuplicateResourceException("Email "+ doctorPatchRequestDTO.getEmail().get() +" already exists");
             }
@@ -224,7 +224,7 @@ public class DoctorService {
     public void deactivateDoctor(Doctor doctor){
 
         Specification<Appointment> spec = Specification.unrestricted();
-        spec = spec.and((root,query,builder)-> builder.equal(root.get("doctorId"),doctor.getId()));
+        spec = spec.and((root,query,builder)-> builder.equal(root.get("doctor").get("id"),doctor.getId()));
         spec = spec.and((root,query,builder)-> builder.equal(root.get("appointmentStatus"), AppointmentStatus.SCHEDULED));
         spec = spec.and((root,query,builder)-> builder.greaterThan(root.get("startTime"), LocalDateTime.now()));
 

@@ -93,7 +93,7 @@ public class AppointmentService {
     public List<Appointment> getRelevantPatientAppointments(Appointment appointment){
 
         Specification<Appointment> spec = Specification.unrestricted();
-        spec = spec.and((root,query,builder)-> builder.equal(root.get("patientId"),appointment.getPatient().getId()));
+        spec = spec.and((root,query,builder)-> builder.equal(root.get("patient").get("id"),appointment.getPatient().getId()));
         spec = spec.and((root,query,builder)-> builder.equal(root.get("appointmentStatus"),AppointmentStatus.SCHEDULED));
         spec = spec.and((root,query,builder)-> builder.greaterThan(root.get("endTime"),appointment.getStartTime()));
 
@@ -482,7 +482,7 @@ public class AppointmentService {
                     .orElseThrow(()->new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
 
-            spec = spec.and((root, query, builder) ->builder.equal(root.get("doctorId"), doctorId));
+            spec = spec.and((root, query, builder) ->builder.equal(root.get("doctor").get("id"), doctorId));
 
         }
 
@@ -492,7 +492,7 @@ public class AppointmentService {
                     .orElseThrow(()->new ResourceNotFoundException("No patient found for id: "+patientId));
 
 
-            spec = spec.and((root, query, builder) ->builder.equal(root.get("patientId"), patientId));
+            spec = spec.and((root, query, builder) ->builder.equal(root.get("patient").get("id"), patientId));
 
         }
 
