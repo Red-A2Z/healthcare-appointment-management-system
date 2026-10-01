@@ -2,12 +2,15 @@ package org.example.service;
 
 
 import org.example.dto.AppointmentDTOs.AppointmentDoctorIdPatchDTO;
+import org.example.dto.AppointmentDTOs.AppointmentStatusRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
 import org.example.entity.Appointment;
 import org.example.entity.Doctor;
 import org.example.entity.DoctorAvailability;
 import org.example.entity.Patient;
 import org.example.enums.AppointmentStatus;
+import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusTimingConflictException;
+import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusValueConflictException;
 import org.example.exception.ConflictExcpetions.children.DoctorInactiveException;
 import org.example.exception.ConflictExcpetions.children.DoctorUnavailableException;
 import org.example.exception.ConflictExcpetions.children.PatientAppointmentConflictException;
@@ -478,7 +481,6 @@ public class AppointmentServiceTest {
         verify(doctorAvailabilityService,times(3)).createDoctorAvailability(any(DoctorAvailabilityRequestDTO.class));
         verify(appointmentRepository).save(appointment);
 
-
     }
 
 
@@ -487,23 +489,180 @@ public class AppointmentServiceTest {
 
 
     @Test
-    void updateAppointmentStatus_whenNewValueIsSCHEDULED_andOldOneIsDifferent_throwsException(){}
+    void updateAppointmentStatus_whenNewValueIsSCHEDULED_andOldOneIsDifferent_throwsException(){
+
+        Long appointmentId = 1L;
+
+        AppointmentStatusRequestDTO appointmentStatusRequestDTO = new AppointmentStatusRequestDTO();
+        appointmentStatusRequestDTO.setAppointmentStatus(AppointmentStatus.SCHEDULED);
+
+        Appointment appointment = new Appointment(1L,
+                null, // we don't need a real Doctor value here
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2030-09-01T09:00:00"),
+                LocalDateTime.parse("2030-09-01T11:00:00"),
+                "Reason 1",
+                AppointmentStatus.CANCELLED);
+
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        AppointmentStatusValueConflictException appointmentStatusValueConflictException = assertThrows(
+                AppointmentStatusValueConflictException.class,
+                ()->appointmentService.updateAppointmentStatus(appointmentId,appointmentStatusRequestDTO));
+
+        assertEquals("You can't directly change from other statuses to SCHEDULED",
+                appointmentStatusValueConflictException.getMessage());
+
+    }
 
     @Test
-    void updateAppointmentStatus_whenNewAndOldValuesAreSCHEDULED_andAppointmentIsInThePast_throwsException(){}
+    void updateAppointmentStatus_whenNewAndOldValuesAreSCHEDULED_andAppointmentIsInThePast_throwsException(){
+
+        Long appointmentId = 1L;
+
+        AppointmentStatusRequestDTO appointmentStatusRequestDTO = new AppointmentStatusRequestDTO();
+        appointmentStatusRequestDTO.setAppointmentStatus(AppointmentStatus.SCHEDULED);
+
+        Appointment appointment = new Appointment(1L,
+                null, // we don't need a real Doctor value here
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2020-09-01T09:00:00"),
+                LocalDateTime.parse("2020-09-01T11:00:00"),
+                "Reason 1",
+                AppointmentStatus.SCHEDULED);
+
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        AppointmentStatusTimingConflictException appointmentStatusTimingConflictException = assertThrows(
+                AppointmentStatusTimingConflictException.class,
+                ()->appointmentService.updateAppointmentStatus(appointmentId,appointmentStatusRequestDTO));
+
+        assertEquals("Consider updating the appointmentStatus field with a value other than SCHEDULED",
+                appointmentStatusTimingConflictException.getMessage());
+
+    }
 
     @Test
-    void updateAppointmentStatus_whenNewValueIsCANCELLED_andAppointmentIsActualOrInThePast_throwsException(){}
+    void updateAppointmentStatus_whenNewValueIsCANCELLED_andAppointmentIsActualOrInThePast_throwsException(){
+
+        Long appointmentId = 1L;
+
+        AppointmentStatusRequestDTO appointmentStatusRequestDTO = new AppointmentStatusRequestDTO();
+        appointmentStatusRequestDTO.setAppointmentStatus(AppointmentStatus.CANCELLED);
+
+        Appointment appointment = new Appointment(1L,
+                null, // we don't need a real Doctor value here
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2020-09-01T09:00:00"),
+                LocalDateTime.parse("2020-09-01T11:00:00"),
+                "Reason 1",
+                AppointmentStatus.SCHEDULED);
+
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        AppointmentStatusTimingConflictException appointmentStatusTimingConflictException = assertThrows(
+                AppointmentStatusTimingConflictException.class,
+                ()->appointmentService.updateAppointmentStatus(appointmentId,appointmentStatusRequestDTO));
+
+        assertEquals("Too late to cancel the appointment",
+                appointmentStatusTimingConflictException.getMessage());
+
+    }
 
     @Test
-    void updateAppointmentStatus_whenNewValueIsNotSCHEDULEDOrCANCELLED_andAppointmentIsInThePast_throwsException(){}
+    void updateAppointmentStatus_whenNewValueIsNotSCHEDULEDOrCANCELLED_andAppointmentIsNotInThePast_throwsException(){
+
+        Long appointmentId = 1L;
+
+        AppointmentStatusRequestDTO appointmentStatusRequestDTO = new AppointmentStatusRequestDTO();
+        appointmentStatusRequestDTO.setAppointmentStatus(AppointmentStatus.NO_SHOW);
+
+        Appointment appointment = new Appointment(1L,
+                null, // we don't need a real Doctor value here
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2030-09-01T09:00:00"),
+                LocalDateTime.parse("2030-09-01T11:00:00"),
+                "Reason 1",
+                AppointmentStatus.SCHEDULED);
+
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        AppointmentStatusTimingConflictException appointmentStatusTimingConflictException = assertThrows(
+                AppointmentStatusTimingConflictException.class,
+                ()->appointmentService.updateAppointmentStatus(appointmentId,appointmentStatusRequestDTO));
+
+        assertEquals("Too early to mark this appointment as "+appointmentStatusRequestDTO.getAppointmentStatus(),
+                appointmentStatusTimingConflictException.getMessage());
+
+    }
 
     @Test
-    void updateAppointmentStatus_whenNewValueIsNotSCHEDULEDOrCANCELLED_andPreviousValueIsDifferentFromSCHEDULEDAndNewValue_throwsException(){}
+    void updateAppointmentStatus_whenNewValueIsNotSCHEDULEDOrCANCELLED_andPreviousValueIsDifferentFromSCHEDULEDAndNewValue_throwsException(){
+
+        Long appointmentId = 1L;
+
+        AppointmentStatusRequestDTO appointmentStatusRequestDTO = new AppointmentStatusRequestDTO();
+        appointmentStatusRequestDTO.setAppointmentStatus(AppointmentStatus.NO_SHOW);
+
+        Appointment appointment = new Appointment(1L,
+                null, // we don't need a real Doctor value here
+                null, // we don't need a real Patient value here
+                LocalDateTime.parse("2020-09-01T09:00:00"),
+                LocalDateTime.parse("2020-09-01T11:00:00"),
+                "Reason 1",
+                AppointmentStatus.CANCELLED);
+
+        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        AppointmentStatusValueConflictException appointmentStatusValueConflictException = assertThrows(
+                AppointmentStatusValueConflictException.class,
+                ()->appointmentService.updateAppointmentStatus(appointmentId,appointmentStatusRequestDTO));
+
+        assertEquals("Previous value must be SCHEDULED or "+appointmentStatusRequestDTO.getAppointmentStatus()+ "in order to apply changes",
+                appointmentStatusValueConflictException.getMessage());
+
+
+    }
 
 
     @Test
-    void freeTimeslotAndUpdateAppointment_shouldFreeTimeslotForDoctor_andMarkAppointmentAsCancelled(){}
+    void freeTimeslotAndUpdateAppointment_shouldFreeTimeslotForDoctor_andMarkAppointmentAsCancelled(){
+
+        Doctor doctor =  new Doctor(1L,
+                "John",
+                "John",
+                "Cardiology",
+                "+1234567",
+                "john@john.com",
+                true);
+
+        Patient patient =  new Patient(1L,
+                "Hugo",
+                "Hugo",
+                LocalDate.of(2000,1,1),
+                "+7654321",
+                "hugo@hugo.com");
+
+        Appointment appointment = new Appointment(1L,
+                doctor,
+                patient,
+                LocalDateTime.parse("2030-09-01T09:00:00"),
+                LocalDateTime.parse("2030-09-01T11:00:00"),
+                "Reason 1",
+                AppointmentStatus.SCHEDULED);
+
+
+        appointmentService.freeTimeslotAndUpdateAppointment(appointment);
+
+
+        assertEquals(AppointmentStatus.CANCELLED,appointment.getAppointmentStatus());
+        verify(appointmentRepository).save(appointment);
+        verify(doctorAvailabilityService).createDoctorAvailability(any(DoctorAvailabilityRequestDTO.class));
+
+
+
+
+    }
 
 
 
