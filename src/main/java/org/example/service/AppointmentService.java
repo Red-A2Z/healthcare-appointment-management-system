@@ -417,7 +417,7 @@ public class AppointmentService {
         }else{
 
             if(!appointment.getEndTime().isBefore(LocalDateTime.now())){
-                throw new AppointmentStatusTimingConflictException("Too early to mark this appointment as "+appointment.getAppointmentStatus());
+                throw new AppointmentStatusTimingConflictException("Too early to mark this appointment as "+appointmentStatusRequestDTO.getAppointmentStatus());
             }
 
             if(!(appointment.getAppointmentStatus().equals(appointmentStatusRequestDTO.getAppointmentStatus())
