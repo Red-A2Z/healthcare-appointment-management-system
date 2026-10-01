@@ -199,9 +199,6 @@ public class DoctorAvailabilityService {
 
 
 
-
-        doctorAvailabilityRepository.save(doctorAvailability);
-
         return mapToDoctorAvailabilityResponseDTO(doctorAvailability);
 
 
