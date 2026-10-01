@@ -19,6 +19,7 @@ public class PatientRequestDTO {
     private String lastName;
 
     @PastOrPresent(message= "The date of birth must be today or in the past")
+    @NotNull(message = "Date of Birth must not be null or not provided")
     private LocalDate dateOfBirth;
 
     @NotNull(message = "Phone number must not be null or not provided")
