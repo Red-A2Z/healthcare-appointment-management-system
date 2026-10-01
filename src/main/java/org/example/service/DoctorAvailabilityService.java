@@ -219,7 +219,7 @@ public class DoctorAvailabilityService {
 
         DoctorAvailabilityResponseDTO doctorAvailabilityResponseDTO = new DoctorAvailabilityResponseDTO();
         doctorAvailabilityResponseDTO.setId(doctorAvailability.getId());
-        doctorAvailabilityResponseDTO.setDoctorId(doctorAvailability.getId());
+        doctorAvailabilityResponseDTO.setDoctorId(doctorAvailability.getDoctor().getId());
         doctorAvailabilityResponseDTO.setStartTime(doctorAvailability.getStartTime());
         doctorAvailabilityResponseDTO.setEndTime(doctorAvailability.getEndTime());
         doctorAvailabilityResponseDTO.setCreatedAt(doctorAvailability.getCreatedAt());
