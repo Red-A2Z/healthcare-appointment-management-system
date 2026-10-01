@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.enums.AppointmentStatus;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -34,7 +36,8 @@ public class Appointment {
     private AppointmentStatus appointmentStatus;
 
 
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(insertable = false,updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Generated(event = EventType.INSERT)
     private Instant createdAt;
 
 

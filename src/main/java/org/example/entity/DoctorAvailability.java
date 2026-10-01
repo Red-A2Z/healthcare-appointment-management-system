@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -29,7 +31,8 @@ public class DoctorAvailability {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(insertable = false,updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Generated(event = EventType.INSERT)
     private Instant createdAt;
 
     public DoctorAvailability(Long id, Doctor doctor, LocalDateTime startTime, LocalDateTime endTime) {
