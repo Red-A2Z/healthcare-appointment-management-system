@@ -422,7 +422,7 @@ public class AppointmentService {
 
             if(!(appointment.getAppointmentStatus().equals(appointmentStatusRequestDTO.getAppointmentStatus())
                     || appointment.getAppointmentStatus().equals(AppointmentStatus.SCHEDULED))){
-                throw new AppointmentStatusValueConflictException("Previous value must be SCHEDULED or "+appointment.getAppointmentStatus()+ "in order to apply changes");
+                throw new AppointmentStatusValueConflictException("Previous value must be SCHEDULED or "+appointmentStatusRequestDTO.getAppointmentStatus()+ "in order to apply changes");
             }
             appointment.setAppointmentStatus(appointmentStatusRequestDTO.getAppointmentStatus());
             appointmentRepository.save(appointment);
