@@ -4,9 +4,10 @@ package org.example.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.dto.ExceptionDTOs.ExceptionResponseDTO;
 import org.example.dto.ExceptionDTOs.MethodArgumentNotValidExceptionResponseDTO;
-import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusConflictException;
 import org.example.exception.ConflictExcpetions.children.*;
 import org.example.exception.ConflictExcpetions.parent.ConflictException;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -37,6 +38,41 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponseDTO);
     }
+
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleDataAccessException(DataAccessException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "An internal database error occurred."
+        );
+
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponseDTO);
+    }
+
+
+    @ExceptionHandler(ConcurrencyFailureException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleConcurrencyFailureException(ConcurrencyFailureException ex, HttpServletRequest httpServletRequest){
+
+        ExceptionResponseDTO exceptionResponseDTO = new ExceptionResponseDTO(
+                LocalDateTime.now(),
+                httpServletRequest.getRequestURI(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                "The operation could not be completed due to a concurrent modification."
+        );
+
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponseDTO);
+    }
+
+
+
 
 
 
