@@ -11,12 +11,9 @@ import org.example.entity.DoctorAvailability;
 import org.example.entity.Patient;
 import org.example.enums.AppointmentStatus;
 import org.example.exception.*;
+import org.example.exception.ConflictExcpetions.children.*;
 import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusTimingConflictException;
 import org.example.exception.ConflictExcpetions.children.AppointmentStatusConflictExceptions.AppointmentStatusValueConflictException;
-import org.example.exception.ConflictExcpetions.children.AppointmentNotUpdatableException;
-import org.example.exception.ConflictExcpetions.children.DoctorInactiveException;
-import org.example.exception.ConflictExcpetions.children.DoctorUnavailableException;
-import org.example.exception.ConflictExcpetions.children.PatientAppointmentConflictException;
 import org.example.repository.AppointmentRepository;
 import org.example.repository.DoctorAvailabilityRepository;
 import org.example.repository.DoctorRepository;
@@ -293,11 +290,12 @@ public class AppointmentService {
 
         Patient newPatient = patientRepository.findById(patientId).orElseThrow(()-> new ResourceNotFoundException("No patient found for id: "+patientId));
 
+        appointment.setPatient(newPatient);
+
         // Patient cannot have overlapping appointments
         List<Appointment> patientAppointmentList = getRelevantPatientAppointments(appointment);
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
-        appointment.setPatient(newPatient);
         appointmentRepository.save(appointment);
 
         return mapToAppointmentResponseDTO(appointment);
@@ -444,7 +442,11 @@ public class AppointmentService {
         DoctorAvailabilityRequestDTO doctorAvailability = new DoctorAvailabilityRequestDTO(appointment.getDoctor().getId(),
                 appointment.getStartTime(),
                 appointment.getEndTime());
-        doctorAvailabilityService.createDoctorAvailability(doctorAvailability);
+        try{
+            doctorAvailabilityService.createDoctorAvailability(doctorAvailability);
+        }catch (TimePeriodAlreadyCoveredException ignored){
+
+        }
 
 
         return mapToAppointmentResponseDTO(appointment);
