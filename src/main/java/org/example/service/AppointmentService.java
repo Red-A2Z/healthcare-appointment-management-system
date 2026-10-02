@@ -476,6 +476,8 @@ public class AppointmentService {
 
 
         Specification<Appointment> spec = Specification.unrestricted();
+        AppointmentListResponseDTO appointmentListResponseDTO = new AppointmentListResponseDTO();
+
 
 
         if(appointmentQueryRequestDTO.getDoctorId().isPresent()){
@@ -483,8 +485,10 @@ public class AppointmentService {
             doctorRepository.findById(doctorId)
                     .orElseThrow(()->new ResourceNotFoundException("No doctor found for id: "+doctorId));
 
-
             spec = spec.and((root, query, builder) ->builder.equal(root.get("doctor").get("id"), doctorId));
+
+
+            appointmentListResponseDTO.setDoctorId(appointmentQueryRequestDTO.getDoctorId().get());
 
         }
 
@@ -493,8 +497,10 @@ public class AppointmentService {
             patientRepository.findById(patientId)
                     .orElseThrow(()->new ResourceNotFoundException("No patient found for id: "+patientId));
 
-
             spec = spec.and((root, query, builder) ->builder.equal(root.get("patient").get("id"), patientId));
+
+
+            appointmentListResponseDTO.setPatientId(appointmentQueryRequestDTO.getPatientId().get());
 
         }
 
@@ -502,9 +508,10 @@ public class AppointmentService {
         if(appointmentQueryRequestDTO.getStartDate().isPresent()){
 
             LocalDateTime startTime = appointmentQueryRequestDTO.getStartDate().get().atStartOfDay();
-
             spec = spec.and((root, query, builder) ->builder.greaterThanOrEqualTo(root.get("startTime"),startTime));
 
+
+            appointmentListResponseDTO.setStartDate(appointmentQueryRequestDTO.getStartDate().get());
 
         }
 
@@ -515,6 +522,8 @@ public class AppointmentService {
             spec = spec.and((root, query, builder) ->builder.lessThan(root.get("endTime"),endTime));
 
 
+            appointmentListResponseDTO.setEndDate(appointmentQueryRequestDTO.getEndDate().get());
+
         }
 
 
@@ -523,17 +532,13 @@ public class AppointmentService {
             spec = spec.and((root, query, builder) ->builder.equal(root.get("appointmentStatus"),appointmentQueryRequestDTO.getAppointmentStatus().get()));
 
 
+            appointmentListResponseDTO.setAppointmentStatus(appointmentQueryRequestDTO.getAppointmentStatus().get());
+
         }
 
 
         List<Appointment> appointmentList = appointmentRepository.findAll(spec);
 
-        AppointmentListResponseDTO appointmentListResponseDTO = new AppointmentListResponseDTO();
-        appointmentListResponseDTO.setDoctorId(appointmentQueryRequestDTO.getDoctorId().get());
-        appointmentListResponseDTO.setPatientId(appointmentQueryRequestDTO.getPatientId().get());
-        appointmentListResponseDTO.setStartDate(appointmentQueryRequestDTO.getStartDate().get());
-        appointmentListResponseDTO.setEndDate(appointmentQueryRequestDTO.getEndDate().get());
-        appointmentListResponseDTO.setAppointmentStatus(appointmentQueryRequestDTO.getAppointmentStatus().get());
         appointmentListResponseDTO.setAppointmentList(appointmentList);
 
 
