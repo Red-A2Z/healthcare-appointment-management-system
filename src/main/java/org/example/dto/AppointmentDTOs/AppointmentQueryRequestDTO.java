@@ -3,6 +3,7 @@ package org.example.dto.AppointmentDTOs;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.enums.AppointmentStatus;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class AppointmentQueryRequestDTO {
 
 
