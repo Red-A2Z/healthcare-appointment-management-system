@@ -380,4 +380,220 @@ Body:
 
 
 
+### PATCH `/{id}`
+
+#### Purpose:
+Updates targeted fields of a doctor availability record (except for the 'id' and 'createdAt' fields)
+
+#### Requirements:
+- Path parameter "id": id of the doctor availability record to update
+- Request body(JSON): should contain the targeted fields and their corresponding new values
+
+
+#### Request :
+
+Path parameter:
+
+`/3`
+
+Body:
+
+{
+"doctorId" :1
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"id": 3,
+"doctorId": 1,
+"startTime": "2030-09-01T18:00:00",
+"endTime": "2030-09-01T19:00:00",
+"createdAt": "2026-10-01T11:31:50.409798Z"
+}
+
+
+
+### DELETE `/{id}`
+
+#### Purpose:
+Deletes a doctor availability record
+
+#### Requirements:
+- Path parameter "id": id of the doctor availability record to delete
+
+#### Request :
+
+Path parameter:
+
+`/3`
+
+#### Successful Response :
+
+Status: 204 No Content  
+  
+
+
+## Patient
+
+### POST
+
+#### Purpose:
+Creates a patient record
+
+#### Requirements:
+Request body (JSON): patient information
+
+#### Request :
+
+Body:
+
+{
+"firstName" :"Lucas",
+"lastName" :"Lucas",
+"dateOfBirth":"2000-01-01",
+"phoneNumber":"+1231231",
+"email": "lucas@lucas.com"
+}
+
+#### Successful Response :
+
+Status: 201 Created
+
+Body:
+
+{
+"createdAt": "2026-10-01T12:04:18.323527Z",
+"dateOfBirth": "2000-01-01",
+"email": "lucas@lucas.com",
+"firstName": "Lucas",
+"id": 1,
+"lastName": "Lucas",
+"phoneNumber": "+1231231"
+}
+
+
+### GET
+
+#### Purpose:
+Reads a patient record
+
+#### Requirements:
+Query parameter "id": id of the patient record to read
+
+#### Request :
+
+Query parameter:
+
+id=1
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"createdAt": "2026-10-01T12:04:18.323527Z",
+"dateOfBirth": "2000-01-01",
+"email": "lucas@lucas.com",
+"firstName": "Lucas",
+"id": 1,
+"lastName": "Lucas",
+"phoneNumber": "+1231231"
+}
+
+
+### PUT `/{id}`
+
+#### Purpose:
+Completely updates a patient record (except for the 'id' and 'createdAt' fields)
+
+#### Requirements:
+- Path parameter "id": id of the patient record to update
+- Request body(JSON): should contain all the keys and the new values
+
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{
+"firstName" :"Albert",
+"lastName" :"Albert",
+"dateOfBirth":"2000-02-02",
+"phoneNumber":"+3213213",
+"email": "albert@albert.com"
+}
+
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"createdAt": "2026-10-01T12:04:18.323527Z",
+"dateOfBirth": "2000-02-02",
+"email": "albert@albert.com",
+"firstName": "Albert",
+"id": 1,
+"lastName": "Albert",
+"phoneNumber": "+3213213"
+}
+
+
+### PATCH `/{id}`
+
+#### Purpose:
+Updates targeted fields of a patient record (except for the 'id' and 'createdAt' fields)
+
+#### Requirements:
+- Path parameter "id": id of the patient record to update
+- Request body(JSON): should contain the targeted fields and their corresponding new values
+
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{
+"dateOfBirth":"2000-02-01"
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"createdAt": "2026-10-01T12:04:18.323527Z",
+"dateOfBirth": "2000-02-01",
+"email": "albert@albert.com",
+"firstName": "Albert",
+"id": 1,
+"lastName": "Albert",
+"phoneNumber": "+3213213"
+}
+
+
+
+
+
+
+
 ## Notes
