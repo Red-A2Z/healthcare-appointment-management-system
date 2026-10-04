@@ -198,8 +198,8 @@ Body:
 ### POST
 
 #### Purpose:
-Creates a doctor availability record:
-if the provided timeslot is contiguous with an existing one, it merges them.
+Creates a doctor availability record.
+If the provided time slot is contiguous with an existing one, it merges them.
 
 #### Requirements:
 Request body (JSON): doctor availability information
@@ -588,6 +588,441 @@ Body:
 "id": 1,
 "lastName": "Albert",
 "phoneNumber": "+3213213"
+}
+
+
+## Appointment
+
+### POST
+
+#### Purpose:
+Creates an appointments record (Books an appointment).
+It removes the corresponding doctor availability time slot.
+
+#### Requirements:
+Request body (JSON): appointment information
+
+#### Request :
+
+Body:
+
+{
+"doctorId" :1,
+"patientId" :1,
+"startTime" :"2030-09-01T08:00:00",
+"endTime":"2030-09-01T09:00:00",
+"reasonForVisit":"Reason 1"
+}
+
+#### Successful Response :
+
+Status: 201 Created
+
+Body:
+
+{
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 1,
+"endTime": "2030-09-01T09:00:00",
+"id": 1,
+"patientId": 1,
+"reasonForVisit": "Reason 1",
+"startTime": "2030-09-01T08:00:00"
+}
+
+
+### PATCH `/doctor/{id}`
+
+#### Purpose:
+Changes the doctor for an appointment.
+The old doctor becomes available again for that time slot.
+
+#### Requirements:
+- Path parameter "id": id of the appointment record to update
+- Request body(JSON):
+  {
+  "doctorId": *value*
+  }
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{
+"doctorId":2
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 2,
+"endTime": "2030-09-01T09:00:00",
+"id": 1,
+"patientId": 1,
+"reasonForVisit": "Reason 1",
+"startTime": "2030-09-01T08:00:00"
+}
+
+
+
+### PATCH `/patient/{id}`
+
+#### Purpose:
+Changes the patient for an appointment
+
+#### Requirements:
+- Path parameter "id": id of the appointment record to update
+- Request body(JSON):
+  {
+  "patientId": *value*
+  }
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{
+"patientId":2
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 1,
+"endTime": "2030-09-01T09:00:00",
+"id": 1,
+"patientId": 2,
+"reasonForVisit": "Reason 1",
+"startTime": "2030-09-01T08:00:00"
+}
+
+
+
+
+### PATCH `/reschedule/{id}`
+
+#### Purpose:
+Reschedules  an appointment
+
+#### Requirements:
+- Path parameter "id": id of the appointment record to update
+- Request body(JSON):
+  {
+  "startTime": *value1*, "endTime":*value2*
+  }
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{  
+"startTime": 2030-09-01T10:00:00,   
+"endTime": 2030-09-01T11:00:00  
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 1,
+"endTime": "2030-09-01T11:00:00",
+"id": 1,
+"patientId": 1,
+"reasonForVisit": "Reason 1",
+"startTime": "2030-09-01T10:00:00"
+}
+
+
+
+
+
+### PATCH `/reasonforvisit/{id}`
+
+#### Purpose:
+Modifies the "reason for visit" of an appointment
+
+#### Requirements:
+- Path parameter "id": id of the appointment record to update
+- Request body(JSON):
+  {
+  "reasonForVisit": *value*
+  }
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{  
+"reasonForVisit": "Reason 2"
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 1,
+"endTime": "2030-09-01T09:00:00",
+"id": 1,
+"patientId": 1,
+"reasonForVisit": "Reason 2",
+"startTime": "2030-09-01T08:00:00"
+}
+
+
+
+
+### PATCH `/status/{id}`
+
+#### Purpose:
+Changes the status of an appointment.  
+4 states are allowed:
+- COMPLETED
+- CANCELLED
+- NO_SHOW: the patient did not show up.
+- SERVICE_FAILURE: a clinic-side issue has occurred.
+
+#### Requirements:
+- Path parameter "id": id of the appointment record to update
+- Request body(JSON):
+  {
+  "appointmentStatus": *value*
+  }
+
+#### Request :
+
+Path parameter:
+
+`/1`
+
+Body:
+
+{  
+"appointmentStatus": "CANCELLED"
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"appointmentStatus": "CANCELLED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 1,
+"endTime": "2030-09-01T09:00:00",
+"id": 1,
+"patientId": 1,
+"reasonForVisit": "Reason 1",
+"startTime": "2030-09-01T08:00:00"
+}
+
+
+### GET 
+
+#### Purpose:
+Reads an appointment record
+
+#### Requirements:
+Query parameter "id": id of the appointment record to read
+
+#### Request :
+
+Query parameter:
+
+id=1
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z",
+"doctorId": 1,
+"endTime": "2030-09-01T09:00:00",
+"id": 1,
+"patientId": 1,
+"reasonForVisit": "Reason 1",
+"startTime": "2030-09-01T08:00:00"
+}
+
+
+
+
+
+### GET `/list`
+
+#### Purpose:
+Reads all appointment records that correspond to the defined filter
+
+#### Requirements:
+Request Body (JSON):   
+you can include any, some or all of the following keys and set their corresponding values:
+- doctorId
+- patientId
+- startDate
+- endDate
+- appointmentStatus  
+
+To get all appointments, keep the request body empty.
+
+
+#### Request :
+
+Request Body:
+
+{  
+"appointmentStatus":"SCHEDULED",   
+"startDate" :"2030-09-01",  
+"endDate":"2030-09-01"  
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{  
+"appointmentList":[  
+
+{
+"id": 1,
+"doctor": {
+"id": 1,
+"firstName": "Martin",
+"lastName": "Martin",
+"specialty": "Cardiology",
+"phoneNumber": "+17931793",
+"email": "martin@martin.com",
+"isActive": true,
+"createdAt": "2026-10-01T10:53:36.439789Z"
+},
+"patient": {
+"id": 1,
+"firstName": "Albert",
+"lastName": "Albert",
+"dateOfBirth": "2000-02-01",
+"phoneNumber": "+3213213",
+"email": "albert@albert.com",
+"createdAt": "2026-10-01T12:04:18.323527Z"
+},
+"startTime": "2030-09-01T08:00:00",
+"endTime": "2030-09-01T09:00:00",
+"reasonForVisit": "Reason 1",
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T12:48:41.306868Z"
+}
+
+
+{
+"id": 2,
+"doctor": {
+"id": 1,
+"firstName": "Martin",
+"lastName": "Martin",
+"specialty": "Cardiology",
+"phoneNumber": "+17931793",
+"email": "martin@martin.com",
+"isActive": true,
+"createdAt": "2026-10-01T10:53:36.439789Z"
+},
+"patient": {
+"id": 2,
+"firstName": "Hugo",
+"lastName": "Hugo",
+"dateOfBirth": "2000-03-03",
+"phoneNumber": "+8888888",
+"email": "hugo@hugo.com",
+"createdAt": "2026-10-01T12:14:18.323527Z"
+},
+"startTime": "2030-09-01T14:00:00",
+"endTime": "2030-09-01T16:00:00",
+"reasonForVisit": "Reason 2",
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T13:48:41.306868Z"
+}
+
+
+
+
+{
+"id": 3,
+"doctor": {
+"id": 2,
+"firstName": "Robert",
+"lastName": "Robert",
+"specialty": "Cardiology",
+"phoneNumber": "+5656565",
+"email": "robert@robert.com",
+"isActive": true,
+"createdAt": "2026-10-01T21:53:36.439789Z"
+},
+"patient": {
+"id": 3,
+"firstName": "Nicolas",
+"lastName": "Nicolas",
+"dateOfBirth": "2000-04-01",
+"phoneNumber": "+7297297",
+"email": "nicolas@nicolas.com",
+"createdAt": "2026-10-01T14:04:18.323527Z"
+},
+"startTime": "2030-09-01T10:00:00",
+"endTime": "2030-09-01T11:00:00",
+"reasonForVisit": "Reason 3",
+"appointmentStatus": "SCHEDULED",
+"createdAt": "2026-10-01T14:48:41.306868Z"
+}
+
+],  
+
+"appointmentStatus": "SCHEDULED",  
+"doctorId": null,  
+"endDate": "2030-09-01",  
+"patientId": null,  
+"startDate": "2030-09-01"
 }
 
 
