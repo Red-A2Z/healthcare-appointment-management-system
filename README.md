@@ -76,7 +76,7 @@ Body:
 ### GET
 
 #### Purpose:
-Reads the doctor record
+Reads a doctor record
 
 #### Requirements:
 Query parameter "id": id of the doctor record to read
@@ -87,7 +87,7 @@ Query parameter:
 
 id=1
 
-#### Response :
+#### Successful Response :
 
 Status: 200 OK
 
@@ -111,7 +111,7 @@ Body:
 ### PUT `/{id}`
 
 #### Purpose:
-Completely updates the doctor record (except for the 'id' and 'createdAt' fields)
+Completely updates a doctor record (except for the 'id' and 'createdAt' fields)
 
 #### Requirements:
 - Path parameter "id": id of the doctor record to update
@@ -135,7 +135,7 @@ Body:
 "isActive": false
 }
 
-#### Response :
+#### Successful Response :
 
 Status: 200 OK
 
@@ -155,7 +155,7 @@ Body:
 ### PATCH `/{id}`
 
 #### Purpose:
-Updates targeted fields of the doctor record (except for the 'id' and 'createdAt' fields)
+Updates targeted fields of a doctor record (except for the 'id' and 'createdAt' fields)
 
 #### Requirements:
 - Path parameter "id": id of the doctor record to update
@@ -174,7 +174,7 @@ Body:
 "isActive": true
 }
 
-#### Response :
+#### Successful Response :
 
 Status: 200 OK
 
@@ -192,6 +192,191 @@ Body:
 }
 
 
+
+## Doctor Availability
+
+### POST
+
+#### Purpose:
+Creates a doctor availability record:
+if the provided timeslot is contiguous with an existing one, it merges them.
+
+#### Requirements:
+Request body (JSON): doctor availability information
+
+#### Request :
+
+Body:
+
+{
+"doctorId" :1,
+"startTime" :"2030-09-01T08:00:00",
+"endTime":"2030-09-01T10:00:00"
+}
+
+#### Successful Response :
+
+Status: 201 Created
+
+Body:
+
+{
+"id": 1,
+"doctorId": 1,
+"startTime": "2030-09-01T08:00:00",
+"endTime": "2030-09-01T10:00:00",
+"createdAt": "2026-10-01T11:27:00.752531Z"
+}
+
+
+### GET
+
+#### Purpose:
+Reads a doctor availability record
+
+#### Requirements:
+Query parameter "id": id of the doctor availability record to read
+
+#### Request :
+
+Query parameter:
+
+id=1
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"id": 1,
+"doctorId": 1,
+"startTime": "2030-09-01T08:00:00",
+"endTime": "2030-09-01T10:00:00",
+"createdAt": "2026-10-01T11:27:00.752531Z"
+}
+
+
+### GET `/list`
+
+#### Purpose:
+Reads all availability records of a specified doctor
+
+#### Requirements:
+Query parameter "doctorId": id of the doctor
+
+#### Request :
+
+Query parameter:
+
+doctorId=1
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{  
+"doctorActive": true,  
+"doctorAvailabilityList": [    
+
+{
+"id": 1,
+"doctor": {
+"id": 1,
+"firstName": "Martin",
+"lastName": "Martin",
+"specialty": "Cardiology",
+"phoneNumber": "+17931793",
+"email": "martin@martin.com",
+"isActive": true,
+"createdAt": "2026-10-01T10:53:36.439789Z"
+},
+"startTime": "2030-09-01T08:00:00",
+"endTime": "2030-09-01T10:00:00",
+"createdAt": "2026-10-01T11:27:00.752531Z"
+},   
+  
+{
+"id": 2,
+"doctor": {
+"id": 1,
+"firstName": "Martin",
+"lastName": "Martin",
+"specialty": "Cardiology",
+"phoneNumber": "+17931793",
+"email": "martin@martin.com",
+"isActive": true,
+"createdAt": "2026-10-01T10:53:36.439789Z"
+},
+"startTime": "2030-09-01T12:00:00",
+"endTime": "2030-09-01T14:00:00",
+"createdAt": "2026-10-01T11:31:05.855624Z"
+},  
+
+{
+"id": 3,
+"doctor": {
+"id": 1,
+"firstName": "Martin",
+"lastName": "Martin",
+"specialty": "Cardiology",
+"phoneNumber": "+17931793",
+"email": "martin@martin.com",
+"isActive": true,
+"createdAt": "2026-10-01T10:53:36.439789Z"
+},
+"startTime": "2030-09-01T16:00:00",
+"endTime": "2030-09-01T18:00:00",
+"createdAt": "2026-10-01T11:31:50.409798Z"
+}  
+
+],  
+
+"doctorId": 1
+}
+
+
+
+### PUT `/{id}`
+
+#### Purpose:
+Completely updates a doctor availability record (except for the 'id' and 'createdAt' fields)
+
+#### Requirements:
+- Path parameter "id": id of the doctor availability record to update
+- Request body(JSON): should contain all the keys and the new values
+
+
+#### Request :
+
+Path parameter:
+
+`/3`
+
+Body:
+
+{
+"doctorId" :2,
+"startTime" :"2030-09-01T18:00:00",
+"endTime":"2030-09-01T19:00:00"
+}
+
+#### Successful Response :
+
+Status: 200 OK
+
+Body:
+
+{
+"id": 3,
+"doctorId": 2,
+"startTime": "2030-09-01T18:00:00",
+"endTime": "2030-09-01T19:00:00",
+"createdAt": "2026-10-01T11:31:50.409798Z"
+}
 
 
 
