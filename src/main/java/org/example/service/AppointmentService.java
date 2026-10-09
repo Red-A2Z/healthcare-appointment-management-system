@@ -1,7 +1,6 @@
 package org.example.service;
 
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.example.dto.AppointmentDTOs.*;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
@@ -31,22 +30,22 @@ import java.util.Objects;
 public class AppointmentService {
 
 
-    AppointmentRepository appointmentRepository;
-    DoctorRepository doctorRepository;
-    DoctorAvailabilityRepository doctorAvailabilityRepository;
-    PatientRepository patientRepository;
-    DoctorAvailabilityService doctorAvailabilityService;
+    private final AppointmentTransactionalService appointmentTransactionalService;
+    private final AppointmentHelperService appointmentHelperService;
 
-    public AppointmentService(AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, DoctorAvailabilityRepository doctorAvailabilityRepository, PatientRepository patientRepository, DoctorAvailabilityService doctorAvailabilityService) {
+    private final AppointmentRepository appointmentRepository;
+    private final DoctorRepository doctorRepository;
+    private final DoctorAvailabilityRepository doctorAvailabilityRepository;
+    private final PatientRepository patientRepository;
+
+    public AppointmentService(AppointmentTransactionalService appointmentTransactionalService, AppointmentHelperService appointmentHelperService, AppointmentRepository appointmentRepository, DoctorRepository doctorRepository, DoctorAvailabilityRepository doctorAvailabilityRepository, PatientRepository patientRepository) {
+        this.appointmentTransactionalService = appointmentTransactionalService;
+        this.appointmentHelperService = appointmentHelperService;
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.doctorAvailabilityRepository = doctorAvailabilityRepository;
         this.patientRepository = patientRepository;
-        this.doctorAvailabilityService = doctorAvailabilityService;
     }
-
-
-
 
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO){
 
@@ -78,11 +77,11 @@ public class AppointmentService {
 
         //Doctor must be available
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
-        DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList,newAppointment);
+        DoctorAvailability correspondingDoctorAvailability = appointmentHelperService.checkAppointmentAgainstDAs(doctorAvailabilityList,newAppointment);
 
-        saveAppointmentAndPerformRelatedActions(correspondingDoctorAvailability, newAppointment);
+        appointmentTransactionalService.saveAppointmentAndPerformRelatedActions(correspondingDoctorAvailability, newAppointment);
 
-        return mapToAppointmentResponseDTO(newAppointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(newAppointment);
     }
 
 
@@ -130,63 +129,11 @@ public class AppointmentService {
 
 
 
-    public DoctorAvailability checkAppointmentAgainstDAs(List<DoctorAvailability> doctorAvailabilityList, Appointment newAppointment){
-
-        Long doctorId = newAppointment.getDoctor().getId();
-        LocalDateTime newAppointmentStartTime = newAppointment.getStartTime();
-        LocalDateTime newAppointmentEndTime = newAppointment.getEndTime();
-
-
-        int doctorAvailabilitiesCounter = 0;
-
-        for(DoctorAvailability dav:doctorAvailabilityList){
-
-            LocalDateTime davStartTime = dav.getStartTime();
-            LocalDateTime davEndTime = dav.getEndTime();
-
-            if(!newAppointmentStartTime.isBefore(davStartTime) && !newAppointmentEndTime.isAfter(davEndTime)){
-                return dav;
-            }else{
-                doctorAvailabilitiesCounter++;
-            }
-        }
-
-        if(doctorAvailabilitiesCounter==doctorAvailabilityList.size()){
-            throw new DoctorUnavailableException("Doctor with id "+doctorId+" has no corresponding availability");
-        }
-
-        return null;
-    }
 
 
 
-    @Transactional
-    public void saveAppointmentAndPerformRelatedActions( DoctorAvailability doctorAvailability, Appointment appointment){
-
-        DoctorAvailabilityRequestDTO newDoctorAvailabilityLeft = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
-                doctorAvailability.getStartTime(),
-                appointment.getStartTime());
-
-        DoctorAvailabilityRequestDTO newDoctorAvailabilityRight = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
-                appointment.getEndTime(),
-                doctorAvailability.getEndTime());
 
 
-        doctorAvailabilityRepository.delete(doctorAvailability);
-
-        if(!newDoctorAvailabilityLeft.getStartTime().isEqual(newDoctorAvailabilityLeft.getEndTime())){
-            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityLeft);
-        }
-
-        if(!newDoctorAvailabilityRight.getStartTime().isEqual(newDoctorAvailabilityRight.getEndTime())){
-            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityRight);
-        }
-
-        appointment.setAppointmentStatus(AppointmentStatus.SCHEDULED);
-        appointmentRepository.save(appointment);
-
-
-    }
 
 
 
@@ -207,7 +154,7 @@ public class AppointmentService {
 
         Long doctorId = appointmentDoctorIdPatchDTO.getDoctorId();
         if(Objects.equals(doctorId, appointment.getDoctor().getId())){
-            return mapToAppointmentResponseDTO(appointment);
+            return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
         }
 
 
@@ -221,51 +168,15 @@ public class AppointmentService {
 
         //Doctor must be available
         List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(doctorId);
-        DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList, appointment);
+        DoctorAvailability correspondingDoctorAvailability = appointmentHelperService.checkAppointmentAgainstDAs(doctorAvailabilityList, appointment);
 
-        changeDoctorAndPerformRelatedActions(newDoctor, correspondingDoctorAvailability, appointment);
+        appointmentTransactionalService.changeDoctorAndPerformRelatedActions(newDoctor, correspondingDoctorAvailability, appointment);
 
-        return mapToAppointmentResponseDTO(appointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
     }
 
 
-    @Transactional
-    public void changeDoctorAndPerformRelatedActions(Doctor newDoctor, DoctorAvailability doctorAvailability, Appointment appointment){
 
-        DoctorAvailabilityRequestDTO newDoctorAvailabilityLeft = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
-                doctorAvailability.getStartTime(),
-                appointment.getStartTime());
-
-        DoctorAvailabilityRequestDTO newDoctorAvailabilityRight = new DoctorAvailabilityRequestDTO(doctorAvailability.getDoctor().getId(),
-                appointment.getEndTime(),
-                doctorAvailability.getEndTime());
-
-
-        doctorAvailabilityRepository.delete(doctorAvailability);
-
-        if(!newDoctorAvailabilityLeft.getStartTime().isEqual(newDoctorAvailabilityLeft.getEndTime())){
-            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityLeft);
-        }
-
-        if(!newDoctorAvailabilityRight.getStartTime().isEqual(newDoctorAvailabilityRight.getEndTime())){
-            doctorAvailabilityService.createDoctorAvailability(newDoctorAvailabilityRight);
-        }
-
-
-        // Free time for old Doctor
-        DoctorAvailabilityRequestDTO newAvailabilityForOldDoctor = new DoctorAvailabilityRequestDTO(appointment.getDoctor().getId(),
-                appointment.getStartTime(),
-                appointment.getEndTime());
-        doctorAvailabilityService.createDoctorAvailability(newAvailabilityForOldDoctor);
-
-
-        appointment.setDoctor(newDoctor);
-        appointment.setAppointmentStatus(AppointmentStatus.SCHEDULED);
-        appointmentRepository.save(appointment);
-
-
-
-    }
 
 
 
@@ -284,7 +195,7 @@ public class AppointmentService {
 
         Long patientId = appointmentPatientIdPatchDTO.getPatientId();
         if(Objects.equals(patientId, appointment.getPatient().getId())){
-            return mapToAppointmentResponseDTO(appointment);
+            return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
         }
 
 
@@ -298,7 +209,7 @@ public class AppointmentService {
 
         appointmentRepository.save(appointment);
 
-        return mapToAppointmentResponseDTO(appointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
     }
 
 
@@ -334,26 +245,14 @@ public class AppointmentService {
         patientAppointmentList.removeIf(obj -> obj.getId().equals(id));
         checkAppointmentAgainstPatientAppointments(patientAppointmentList,appointment);
 
-        checkAppointmentAgainstDAsAndPerformReschedulingActions(davWhenAppointmentPeriodIsFreed, appointment);
+        appointmentTransactionalService.checkAppointmentAgainstDAsAndPerformReschedulingActions(davWhenAppointmentPeriodIsFreed, appointment);
 
 
-        return mapToAppointmentResponseDTO(appointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
     }
 
 
 
-    @Transactional
-    public void checkAppointmentAgainstDAsAndPerformReschedulingActions(DoctorAvailabilityRequestDTO davWhenAppointmentPeriodIsFreed, Appointment appointment){
-
-        doctorAvailabilityService.createDoctorAvailability(davWhenAppointmentPeriodIsFreed);
-
-        //Doctor must be available
-        List<DoctorAvailability> doctorAvailabilityList = doctorAvailabilityRepository.findAllByDoctorId(appointment.getDoctor().getId());
-        DoctorAvailability correspondingDoctorAvailability = checkAppointmentAgainstDAs(doctorAvailabilityList,appointment);
-
-        saveAppointmentAndPerformRelatedActions(correspondingDoctorAvailability, appointment);
-
-    }
 
 
 
@@ -376,7 +275,7 @@ public class AppointmentService {
 
         appointmentRepository.save(appointment);
 
-        return mapToAppointmentResponseDTO(appointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
 
     }
 
@@ -409,7 +308,7 @@ public class AppointmentService {
                 throw new AppointmentStatusTimingConflictException("Too late to cancel the appointment");
             }
 
-            return freeTimeslotAndUpdateAppointment(appointment);
+            return appointmentTransactionalService.freeTimeslotAndUpdateAppointment(appointment);
 
 
         }else{
@@ -427,31 +326,10 @@ public class AppointmentService {
 
         }
 
-        return mapToAppointmentResponseDTO(appointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
     }
 
 
-
-    @Transactional
-    public AppointmentResponseDTO freeTimeslotAndUpdateAppointment(Appointment appointment){
-
-        appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
-        appointmentRepository.save(appointment);
-
-        // free this timeslot for Doctor
-        DoctorAvailabilityRequestDTO doctorAvailability = new DoctorAvailabilityRequestDTO(appointment.getDoctor().getId(),
-                appointment.getStartTime(),
-                appointment.getEndTime());
-        try{
-            doctorAvailabilityService.createDoctorAvailability(doctorAvailability);
-        }catch (TimePeriodAlreadyCoveredException ignored){
-
-        }
-
-
-        return mapToAppointmentResponseDTO(appointment);
-
-    }
 
 
 
@@ -464,7 +342,7 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(()-> new ResourceNotFoundException("No appointment found for id: "+id));
 
-        return mapToAppointmentResponseDTO(appointment);
+        return appointmentHelperService.mapToAppointmentResponseDTO(appointment);
 
     }
 
@@ -553,22 +431,6 @@ public class AppointmentService {
 
 
 
-    private AppointmentResponseDTO mapToAppointmentResponseDTO(Appointment appointment){
-
-        AppointmentResponseDTO appointmentResponseDTO = new AppointmentResponseDTO();
-
-        appointmentResponseDTO.setId(appointment.getId());
-        appointmentResponseDTO.setDoctorId(appointment.getDoctor().getId());
-        appointmentResponseDTO.setPatientId(appointment.getPatient().getId());
-        appointmentResponseDTO.setStartTime(appointment.getStartTime());
-        appointmentResponseDTO.setEndTime(appointment.getEndTime());
-        appointmentResponseDTO.setReasonForVisit(appointment.getReasonForVisit());
-        appointmentResponseDTO.setAppointmentStatus(appointment.getAppointmentStatus());
-        appointmentResponseDTO.setCreatedAt(appointment.getCreatedAt());
-
-        return appointmentResponseDTO;
-
-    }
 
 
 

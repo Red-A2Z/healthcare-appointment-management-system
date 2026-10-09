@@ -1,7 +1,6 @@
 package org.example.service;
 
 
-import jakarta.transaction.Transactional;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityListResponseDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityPatchRequestDTO;
 import org.example.dto.DoctorAvailabilityDTOs.DoctorAvailabilityRequestDTO;
@@ -23,6 +22,7 @@ import java.util.List;
 @Service
 public class DoctorAvailabilityService {
 
+    DoctorAvailabilityTransactionalService doctorAvailabilityTransactionalService;
     DoctorAvailabilityRepository doctorAvailabilityRepository;
     DoctorRepository doctorRepository;
 
@@ -57,7 +57,7 @@ public class DoctorAvailabilityService {
 
         List<DoctorAvailability> doctorAvailabilitiesToDelete = handlePeriodOverlapBeforeSaving(doctorAvailabilitiesList,newDoctorAvailability);
 
-        deleteOldAndSaveNew(doctorAvailabilitiesToDelete, newDoctorAvailability);
+        doctorAvailabilityTransactionalService.deleteOldAndSaveNew(doctorAvailabilitiesToDelete, newDoctorAvailability);
 
 
         return mapToDoctorAvailabilityResponseDTO(newDoctorAvailability);
@@ -120,7 +120,7 @@ public class DoctorAvailabilityService {
 
         List<DoctorAvailability> doctorAvailabilitiesToDelete = handlePeriodOverlapBeforeSaving(doctorAvailabilitiesList,doctorAvailability);
 
-        deleteOldAndSaveNew(doctorAvailabilitiesToDelete, doctorAvailability);
+        doctorAvailabilityTransactionalService.deleteOldAndSaveNew(doctorAvailabilitiesToDelete, doctorAvailability);
 
 
 
@@ -195,7 +195,7 @@ public class DoctorAvailabilityService {
 
         List<DoctorAvailability> doctorAvailabilitiesToDelete = handlePeriodOverlapBeforeSaving(doctorAvailabilitiesList,doctorAvailability);
 
-        deleteOldAndSaveNew(doctorAvailabilitiesToDelete, doctorAvailability);
+        doctorAvailabilityTransactionalService.deleteOldAndSaveNew(doctorAvailabilitiesToDelete, doctorAvailability);
 
 
 
@@ -301,19 +301,7 @@ public class DoctorAvailabilityService {
 
 
 
-    @Transactional
-    private void deleteOldAndSaveNew(List<DoctorAvailability> doctorAvailabilitiesToDelete, DoctorAvailability newDoctorAvailability){
 
-
-        for(DoctorAvailability doctorAvailabilityToDelete: doctorAvailabilitiesToDelete){
-            doctorAvailabilityRepository.delete(doctorAvailabilityToDelete);
-        }
-
-        doctorAvailabilityRepository.save(newDoctorAvailability);
-
-
-
-    }
 
 
 
